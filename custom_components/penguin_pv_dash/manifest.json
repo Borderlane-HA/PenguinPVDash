@@ -2,12 +2,12 @@
   "domain": "penguin_pvdash",
   "name": "PenguinPVDash",
   "version": "0.3.8",
-  "documentation": "https://example.invalid",
-  "issue_tracker": "https://example.invalid/issues",
+  "documentation": "https://github.com/Borderlane-HA/PenguinPVDash",
+  "issue_tracker": "https://github.com/Borderlane-HA/PenguinPVDash/issues",
   "iot_class": "local_push",
   "config_flow": true,
   "codeowners": [
-    "@penguin"
+    "@Borderlane-HA"
   ],
   "requirements": []
 }
