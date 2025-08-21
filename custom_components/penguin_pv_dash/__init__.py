@@ -6,177 +6,121 @@ import hmac
 import json
 import logging
 from urllib.parse import urlparse
-from datetime import datetime, timedelta
+from datetime import timedelta, datetime, timezone
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 
 from .const import (
     DOMAIN,
-    CONF_SERVER_URL,
-    CONF_API_KEY,
-    CONF_DEVICE_ID,
-    CONF_INTERVAL,
-    CONF_OUTPUT_UNIT,
-    CONF_PV_ENTITY,
-    CONF_BATT_SOC_ENTITY,
-    CONF_FEEDIN_ENTITY,
-    CONF_CONSUMPTION_ENTITY,
-    CONF_GRID_IMPORT_ENTITY,
-    CONF_BATT_CHARGE_ENTITY,
-    CONF_BATT_DISCHARGE_ENTITY,
+    CONF_SERVER_URL, CONF_API_KEY, CONF_DEVICE_ID,
+    CONF_INTERVAL, CONF_OUTPUT_UNIT,
+    CONF_PV_ENTITY, CONF_BATT_SOC_ENTITY, CONF_FEEDIN_ENTITY,
+    CONF_CONSUMPTION_ENTITY, CONF_GRID_IMPORT_ENTITY,
+    CONF_BATT_CHARGE_ENTITY, CONF_BATT_DISCHARGE_ENTITY,
+    CONF_PV_TOTAL_ENTITY, CONF_FEEDIN_TOTAL_ENTITY,
+    CONF_BATT_IN_TOTAL_ENTITY, CONF_BATT_OUT_TOTAL_ENTITY,
+    HEADER_SIG, HEADER_TS, HEADER_DEV,
     DEFAULT_INTERVAL,
-    DEFAULT_OUTPUT_UNIT,
-    DECIMALS,
-    HEADER_SIG,
-    HEADER_TS,
-    HEADER_DEV,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list = []  # sender-only
-
-def _safe_float(state_obj):
-    if not state_obj:
-        return None
-    s = state_obj.state
-    if s in (None, "", "unknown", "unavailable"):
-        return None
-    try:
-        return float(s)
-    except Exception:
-        return None
-
-def _convert_to_output_unit(value: float | None, unit_in: str | None, output: str) -> float | None:
-    if value is None:
-        return None
-    unit_in = (unit_in or "").strip()
-    if output == "kW":
-        if unit_in == "W":
-            return value / 1000.0
-        return value
-    elif output == "W":
-        if unit_in == "kW":
-            return value * 1000.0
-        return value
-    return value
-
-def _round_n(v, n):
-    try:
-        return None if v is None else round(float(v), n)
-    except Exception:
-        return None
-
-def _normalize_url(url: str | None) -> str | None:
-    if not url:
-        return None
-    u = str(url).strip()
-    if not u.lower().startswith(("http://", "https://")):
-        u = "https://" + u
-    parsed = urlparse(u)
-    if not parsed.scheme or not parsed.netloc:
-        return None
-    return u
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    return True
-
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    session = aiohttp_client.async_get_clientsession(hass)
-
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up scheduled sender."""
+    # simple access helpers
     def opt(key, default=None):
         return entry.options.get(key, entry.data.get(key, default))
 
+    server_url = opt(CONF_SERVER_URL)
+    if not server_url:
+        _LOGGER.error("PenguinPVDash: server_url missing in config entry")
+        return False
+
+    # normalize URL: allow direct /api/ingest.php or base path
+    ingest_url = server_url
+    if not ingest_url.lower().endswith("ingest.php"):
+        ingest_url = server_url.rstrip("/") + "/api/ingest.php"
+
+    session = aiohttp_client.async_get_clientsession(hass)
+
+    @callback
     async def _send_once(now=None):
-        server_url = _normalize_url(opt(CONF_SERVER_URL))
-        if not server_url:
-            _LOGGER.debug("penguin_pvdash: server_url not set, skip sending")
-            return
-
-        api_key = (entry.data.get(CONF_API_KEY) or "").strip()
-        device_id = entry.data.get(CONF_DEVICE_ID) or hass.config.location_name or "ha"
-        output_unit = opt(CONF_OUTPUT_UNIT, DEFAULT_OUTPUT_UNIT)
-
-        states = hass.states
-
-        def get_val(eid):
-            if not eid:
-                return None
-            st = states.get(eid)
-            val = _safe_float(st)
-            unit_in = st.attributes.get("unit_of_measurement") if st else None
-            return _convert_to_output_unit(val, unit_in, output_unit)
-
-        payload = {"ts": int(datetime.utcnow().timestamp())}
-
-        pv = _round_n(get_val(opt(CONF_PV_ENTITY)), DECIMALS)
-        if pv is not None:
-            payload["pv_power"] = pv
-
-        batt_charge = _round_n(get_val(opt(CONF_BATT_CHARGE_ENTITY)), DECIMALS)
-        if batt_charge is not None:
-            payload["battery_charge"] = batt_charge
-
-        batt_discharge = _round_n(get_val(opt(CONF_BATT_DISCHARGE_ENTITY)), DECIMALS)
-        if batt_discharge is not None:
-            payload["battery_discharge"] = batt_discharge
-
-        batt_soc = _round_n(_safe_float(states.get(opt(CONF_BATT_SOC_ENTITY))), DECIMALS)
-        if batt_soc is not None:
-            payload["battery_soc"] = batt_soc
-
-        feedin = _round_n(get_val(opt(CONF_FEEDIN_ENTITY)), DECIMALS)
-        if feedin is not None:
-            payload["feed_in"] = feedin
-
-        consumption = _round_n(get_val(opt(CONF_CONSUMPTION_ENTITY)), DECIMALS)
-        if consumption is not None:
-            payload["consumption"] = consumption
-
-        grid_import = _round_n(get_val(opt(CONF_GRID_IMPORT_ENTITY)), DECIMALS)
-        if grid_import is not None:
-            payload["grid_import"] = grid_import
-
-        if len(payload) == 1:
-            _LOGGER.debug("penguin_pvdash: no populated metrics for this cycle")
-            return
-
-        body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
-
-        headers = {
-            "Content-Type": "application/json",
-            HEADER_TS: str(payload["ts"]),
-            HEADER_DEV: device_id,
+        payload = {
+            "ts": int(datetime.now(tz=timezone.utc).timestamp()),
+            "device": opt(CONF_DEVICE_ID, "home"),
+            "unit": opt(CONF_OUTPUT_UNIT, "kW"),
         }
-        if api_key:
-            sig = base64.b64encode(hmac.new(api_key.encode("utf-8"), body, hashlib.sha256).digest()).decode("ascii")
+
+        def as_float(entity_id):
+            if not entity_id:
+                return None
+            st = hass.states.get(entity_id)
+            if not st:
+                return None
+            if st.state in (STATE_UNKNOWN, STATE_UNAVAILABLE, None, ""):
+                return None
+            try:
+                return float(st.state)
+            except (TypeError, ValueError):
+                return None
+
+        # instantaneous metrics
+        payload["pv_power"]          = as_float(opt(CONF_PV_ENTITY))
+        payload["battery_charge"]    = as_float(opt(CONF_BATT_CHARGE_ENTITY))
+        payload["battery_discharge"] = as_float(opt(CONF_BATT_DISCHARGE_ENTITY))
+        payload["battery_soc"]       = as_float(opt(CONF_BATT_SOC_ENTITY))
+        payload["feed_in"]           = as_float(opt(CONF_FEEDIN_ENTITY))
+        payload["consumption"]       = as_float(opt(CONF_CONSUMPTION_ENTITY))
+        payload["grid_import"]       = as_float(opt(CONF_GRID_IMPORT_ENTITY))
+
+        # daily totals (kWh), optional
+        pv_tot   = as_float(opt(CONF_PV_TOTAL_ENTITY))
+        feed_tot = as_float(opt(CONF_FEEDIN_TOTAL_ENTITY))
+        bin_tot  = as_float(opt(CONF_BATT_IN_TOTAL_ENTITY))
+        bout_tot = as_float(opt(CONF_BATT_OUT_TOTAL_ENTITY))
+        if pv_tot is not None:   payload["pv_total_kwh"]       = pv_tot
+        if feed_tot is not None: payload["feed_in_total_kwh"]  = feed_tot
+        if bin_tot is not None:  payload["batt_in_total_kwh"]  = bin_tot
+        if bout_tot is not None: payload["batt_out_total_kwh"] = bout_tot
+
+        # Remove keys with only None to keep payload compact
+        payload = {k:v for k,v in payload.items() if v is not None}
+
+        raw = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+        if opt(CONF_API_KEY):
+            ts = str(int(datetime.now(tz=timezone.utc).timestamp()))
+            sig = base64.b64encode(hmac.new(opt(CONF_API_KEY).encode("utf-8"), raw, hashlib.sha256).digest()).decode("ascii")
             headers[HEADER_SIG] = sig
+            headers[HEADER_TS]  = ts
+            headers[HEADER_DEV] = opt(CONF_DEVICE_ID, "home")
 
         try:
-            async with session.post(server_url, data=body, headers=headers, timeout=15) as resp:
-                txt = await resp.text()
-                if resp.status >= 300:
-                    _LOGGER.warning("penguin_pvdash: server responded %s: %s", resp.status, txt[:200])
+            async with session.post(ingest_url, data=raw, headers=headers, timeout=10) as resp:
+                if resp.status >= 400:
+                    text = await resp.text()
+                    _LOGGER.warning("PVDash ingest failed: %s %s", resp.status, text)
         except Exception as e:
-            _LOGGER.warning("penguin_pvdash send failed: %s", e)
+            _LOGGER.exception("Error sending to PenguinPVDash: %s", e)
 
     # schedule
     interval_min = int(opt(CONF_INTERVAL, DEFAULT_INTERVAL))
-    await _send_once()
-
-    @callback
-    def _reschedule(*args):
-        reg = hass.data[DOMAIN][entry.entry_id]
-        if reg.get("unsub"):
-            reg["unsub"]()
-        minutes = int(opt(CONF_INTERVAL, DEFAULT_INTERVAL))
-        reg["unsub"] = async_track_time_interval(hass, _send_once, timedelta(minutes=minutes))
-
     unsub = async_track_time_interval(hass, _send_once, timedelta(minutes=interval_min))
+
+    # allow reschedule when options change
+    def _reschedule():
+        nonlocal unsub
+        if unsub:
+            unsub()
+        minutes = int(opt(CONF_INTERVAL, DEFAULT_INTERVAL))
+        nonlocal_fn = _send_once  # to keep reference
+        unsub = async_track_time_interval(hass, nonlocal_fn, timedelta(minutes=minutes))
+
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"unsub": unsub, "reschedule": _reschedule}
     entry.async_on_unload(entry.add_update_listener(_options_updated))
     return True
