@@ -7,7 +7,7 @@
   "iot_class": "local_push",
   "config_flow": true,
   "codeowners": [
-    "@penguin"
+    "@Borderlane-HA"
   ],
   "requirements": []
 }
