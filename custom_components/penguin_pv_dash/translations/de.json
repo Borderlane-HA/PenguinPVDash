@@ -3,17 +3,18 @@
     "step": {
       "user": {
         "title": "PenguinPVDash verbinden",
-        "description": "Sende PV-/Batterie- und Netz-Daten an einen externen Server (Übertragung nur für befüllte Werte).",
+        "description": "Sende PV-/Batterie-/Netz-Daten an einen externen Server. Nur befüllte Werte werden übertragen.",
         "data": {
           "server_url": "Server-URL (optional, z. B. https://example.tld/ingest.php)",
           "api_key": "Geheimer API-Schlüssel (optional)",
           "device_id": "Gerätename (optional)",
           "pv_entity": "PV-Leistung",
-          "batt_power_entity": "Batterie-Leistung (positiv=laden, negativ=entladen)",
           "batt_soc_entity": "Batterie SoC (%)",
           "feedin_entity": "Momentane Einspeisung (ins Netz)",
           "consumption_entity": "Aktueller Stromverbrauch",
           "grid_import_entity": "Aktueller Netzbezug",
+          "batt_charge_entity": "Batterie Laden (Sensor)",
+          "batt_discharge_entity": "Batterie Entladen (Sensor)",
           "output_unit": "Ausgabe-Einheit",
           "interval": "Intervall (Minuten)"
         }
@@ -24,11 +25,12 @@
         "init": {
           "data": {
             "pv_entity": "PV-Leistung",
-            "batt_power_entity": "Batterie-Leistung",
             "batt_soc_entity": "Batterie SoC (%)",
             "feedin_entity": "Momentane Einspeisung",
             "consumption_entity": "Aktueller Stromverbrauch",
             "grid_import_entity": "Aktueller Netzbezug",
+            "batt_charge_entity": "Batterie Laden (Sensor)",
+            "batt_discharge_entity": "Batterie Entladen (Sensor)",
             "output_unit": "Ausgabe-Einheit (kW oder W)",
             "interval": "Intervall (Minuten)"
           }
