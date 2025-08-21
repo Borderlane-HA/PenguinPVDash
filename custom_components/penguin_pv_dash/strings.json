@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PenguinPVDash",
+        "description": "Sende PV-/Batteriedaten periodisch an einen externen Server (PHP).",
+        "data": {
+          "server_url": "Server URL (Basis, z. B. https://example.com/pvdash)",
+          "auth_mode": "Authentifizierung (api_key oder hmac_sha256)",
+          "api_key": "API Key (für api_key)",
+          "hmac_secret": "HMAC Secret (für hmac_sha256)",
+          "pv_now_entity": "Entity: PV Erzeugung (W)",
+          "battery_soc_entity": "Entity: Batterie Ladezustand (%)",
+          "battery_in_entity": "Entity: Batterie lädt (W)",
+          "battery_out_entity": "Entity: Batterie entlädt (W)",
+          "interval_seconds": "Intervall in Sekunden (Standard 600)"
+        }
+      }
+    }
+  }
+}
