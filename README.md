@@ -30,7 +30,6 @@ PenguinPVDash/
 5. In HACS nach **PenguinPVDash** suchen → **Install**  
 6. **Home Assistant neu starten**
 
-> Prüfe `/config/custom_components/penguin_pvdash/manifest.json` auf die Version.
 
 ### Manuell (ohne HACS)
 - Ordner `custom_components/penguin_pvdash` nach `/config/custom_components/` kopieren  
@@ -79,6 +78,6 @@ Unter *Einrichten/Optionen* stehen diese Felder zur Verfügung:
 ### `server/inc/config.php` 
 
 $PVDASH_API_KEYS = [
-  // "home" => "dein-langer-api-schluessel" <- Key Anpassen = der Konfiguration in der Erweiterung
+  // "home" => "dein-langer-api-schluessel" <- Key Anpassen = der Konfiguration API Key
 ];
 
