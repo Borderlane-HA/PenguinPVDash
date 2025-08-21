@@ -1,8 +1,8 @@
 {
   "name": "PenguinPVDash",
-  "content_in_root": false,
   "render_readme": true,
-  "domains": [
-    "integration"
-  ]
+  "country": [
+    "DE"
+  ],
+  "homeassistant": "2024.1.0"
 }
