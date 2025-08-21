@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
@@ -10,25 +9,18 @@ from .const import *
 def _entity_sel():
     return selector.EntitySelector(selector.EntitySelectorConfig(domain=['sensor','number']))
 
-
 def _schema(defaults: dict | None = None) -> vol.Schema:
     d = defaults or {}
-    # Build fields programmatically to avoid empty-string defaults for selectors
     fields = {}
-
     fields[vol.Required(CONF_SERVER_URL, default=d.get(CONF_SERVER_URL, ""))] = selector.TextSelector(
-        selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
-    )
+        selector.TextSelectorConfig(type=selector.TextSelectorType.URL))
     fields[vol.Optional(CONF_API_KEY, default=d.get(CONF_API_KEY, ""))] = selector.TextSelector(
-        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
-    )
+        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD))
     fields[vol.Required(CONF_DEVICE_ID, default=d.get(CONF_DEVICE_ID, "home"))] = selector.TextSelector()
     fields[vol.Optional(CONF_INTERVAL, default=d.get(CONF_INTERVAL, DEFAULT_INTERVAL))] = selector.NumberSelector(
-        selector.NumberSelectorConfig(min=1, max=30, step=1, mode=selector.NumberSelectorMode.BOX)
-    )
+        selector.NumberSelectorConfig(min=1, max=30, step=1, mode=selector.NumberSelectorMode.BOX))
     fields[vol.Optional(CONF_OUTPUT_UNIT, default=d.get(CONF_OUTPUT_UNIT, DEFAULT_OUTPUT_UNIT))] = selector.SelectSelector(
-        selector.SelectSelectorConfig(options=["kW","W"], multiple=False, mode=selector.SelectSelectorMode.DROPDOWN)
-    )
+        selector.SelectSelectorConfig(options=["kW","W"], multiple=False, mode=selector.SelectSelectorMode.DROPDOWN))
 
     def opt_entity(key):
         val = d.get(key)
@@ -37,9 +29,12 @@ def _schema(defaults: dict | None = None) -> vol.Schema:
         else:
             fields[vol.Optional(key, default=val)] = _entity_sel()
 
-    for key in (CONF_PV_ENTITY, CONF_BATT_SOC_ENTITY, CONF_FEEDIN_ENTITY, CONF_CONSUMPTION_ENTITY,
-                CONF_GRID_IMPORT_ENTITY, CONF_BATT_CHARGE_ENTITY, CONF_BATT_DISCHARGE_ENTITY,
-                CONF_PV_TOTAL_KWH_ENTITY, CONF_FEEDIN_TOTAL_KWH_ENTITY, CONF_BATT_IN_TOTAL_KWH_ENTITY, CONF_BATT_OUT_TOTAL_KWH_ENTITY):
+    for key in (
+        CONF_PV_ENTITY, CONF_BATT_SOC_ENTITY, CONF_FEEDIN_ENTITY, CONF_CONSUMPTION_ENTITY,
+        CONF_GRID_IMPORT_ENTITY, CONF_BATT_CHARGE_ENTITY, CONF_BATT_DISCHARGE_ENTITY,
+        CONF_PV_TOTAL_KWH_ENTITY, CONF_FEEDIN_TOTAL_KWH_ENTITY, CONF_BATT_IN_TOTAL_KWH_ENTITY, CONF_BATT_OUT_TOTAL_KWH_ENTITY,
+        CONF_CONS_TOTAL_KWH_ENTITY, CONF_IMPORT_TOTAL_KWH_ENTITY
+    ):
         opt_entity(key)
 
     return vol.Schema(fields)

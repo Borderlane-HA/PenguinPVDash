@@ -18,6 +18,8 @@ CONF_PV_TOTAL_KWH_ENTITY = "pv_total_kwh_entity"
 CONF_FEEDIN_TOTAL_KWH_ENTITY = "feedin_total_kwh_entity"
 CONF_BATT_IN_TOTAL_KWH_ENTITY = "batt_in_total_kwh_entity"
 CONF_BATT_OUT_TOTAL_KWH_ENTITY = "batt_out_total_kwh_entity"
+CONF_CONS_TOTAL_KWH_ENTITY = "consumption_total_kwh_entity"
+CONF_IMPORT_TOTAL_KWH_ENTITY = "grid_import_total_kwh_entity"
 
 DEFAULT_INTERVAL = 1  # minutes
 DEFAULT_OUTPUT_UNIT = "kW"
@@ -25,6 +27,3 @@ DEFAULT_OUTPUT_UNIT = "kW"
 HEADER_SIG = "X-PVDash-Signature"
 HEADER_TS = "X-PVDash-Timestamp"
 HEADER_DEV = "X-PVDash-Device"
-
-CONF_CONS_TOTAL_KWH_ENTITY = "consumption_total_kwh_entity"
-CONF_IMPORT_TOTAL_KWH_ENTITY = "grid_import_total_kwh_entity"
