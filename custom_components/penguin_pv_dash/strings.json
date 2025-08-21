@@ -6,31 +6,24 @@
         "title": "PenguinPVDash konfigurieren",
         "description": "Sende PV-/Energie-Daten periodisch an deinen Server.",
         "data": {
-          "server_url": "Server URL (z. B. https://pv.example.com/api/ingest.php)",
-          "api_key": "API Key (optional für HMAC)",
+          "server_url": "Server URL (z. B. https://…/api/ingest.php)",
+          "api_key": "API Key (optional)",
           "device_id": "Geräte-ID",
           "interval": "Intervall (Minuten)",
-          "output_unit": "Leistungseinheit der Sensoren (W oder kW)",
-          "pv_entity": "PV-Leistung (Sensor)",
+          "output_unit": "Leistungseinheit (W oder kW)",
+          "pv_entity": "PV-Leistung",
           "batt_soc_entity": "Batterie SOC (%)",
           "feedin_entity": "Einspeisung (Leistung)",
           "consumption_entity": "Hausverbrauch (Leistung)",
           "grid_import_entity": "Netzbezug (Leistung)",
           "batt_charge_entity": "Batterie IN (Leistung)",
           "batt_discharge_entity": "Batterie OUT (Leistung)",
-          "pv_total_kwh_entity": "PV gesamt (kWh, Tageszähler)",
-          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh, Tageszähler)",
-          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh, Tageszähler)",
-          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh, Tageszähler)"
+          "pv_total_kwh_entity": "PV gesamt (kWh)",
+          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
+          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
+          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)"
         }
       }
-    },
-    "error": {
-      "cannot_connect": "Kann keine Verbindung herstellen",
-      "invalid_url": "Ungültige URL"
-    },
-    "abort": {
-      "already_configured": "Bereits konfiguriert"
     }
   },
   "options": {
@@ -43,7 +36,7 @@
           "device_id": "Geräte-ID",
           "interval": "Intervall (Minuten)",
           "output_unit": "Leistungseinheit (W oder kW)",
-          "pv_entity": "PV-Leistung (Sensor)",
+          "pv_entity": "PV-Leistung",
           "batt_soc_entity": "Batterie SOC (%)",
           "feedin_entity": "Einspeisung (Leistung)",
           "consumption_entity": "Hausverbrauch (Leistung)",

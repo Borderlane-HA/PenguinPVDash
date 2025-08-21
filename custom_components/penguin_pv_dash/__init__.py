@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import json
@@ -9,14 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.event import async_track_time_interval
 
-from .const import (
-    DOMAIN,
-    CONF_SERVER_URL, CONF_API_KEY, CONF_DEVICE_ID, CONF_INTERVAL, CONF_OUTPUT_UNIT,
-    CONF_PV_ENTITY, CONF_BATT_SOC_ENTITY, CONF_FEEDIN_ENTITY, CONF_CONSUMPTION_ENTITY,
-    CONF_GRID_IMPORT_ENTITY, CONF_BATT_CHARGE_ENTITY, CONF_BATT_DISCHARGE_ENTITY,
-    CONF_PV_TOTAL_KWH_ENTITY, CONF_FEEDIN_TOTAL_KWH_ENTITY, CONF_BATT_IN_TOTAL_KWH_ENTITY, CONF_BATT_OUT_TOTAL_KWH_ENTITY,
-    DEFAULT_INTERVAL, HEADER_SIG, HEADER_TS, HEADER_DEV,
-)
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,26 +25,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     def opt(key, default=None):
         return entry.options.get(key, entry.data.get(key, default))
 
-    server_url = str(opt(CONF_SERVER_URL))
-    device_id  = opt(CONF_DEVICE_ID, "home")
-    unit       = (opt(CONF_OUTPUT_UNIT, "kW") or "kW").strip()
-    api_key    = opt(CONF_API_KEY, "")
-
-    # session lifecycle
     state["session"] = aiohttp.ClientSession()
 
     async def _send_once(now=None):
-        session = state["session"]
+        server_url = str(opt(CONF_SERVER_URL))
+        device_id  = opt(CONF_DEVICE_ID, "home")
+        unit       = (opt(CONF_OUTPUT_UNIT, "kW") or "kW").strip()
+        api_key    = opt(CONF_API_KEY, "")
+
         def _get(eid):
-            if not eid:
-                return None
+            if not eid: return None
             st = hass.states.get(eid)
-            if not st:
-                return None
-            try:
-                return float(st.state)
-            except Exception:
-                return None
+            if not st: return None
+            try: return float(st.state)
+            except Exception: return None
 
         payload = {
             "ts": int(datetime.now(timezone.utc).timestamp()),
@@ -68,7 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "batt_in_total_kwh": _get(opt(CONF_BATT_IN_TOTAL_KWH_ENTITY)),
             "batt_out_total_kwh": _get(opt(CONF_BATT_OUT_TOTAL_KWH_ENTITY)),
         }
-        body = {k: v for k, v in payload.items() if v is not None}
+        body = {k:v for k,v in payload.items() if v is not None}
         data_json = json.dumps(body, separators=(",", ":"), ensure_ascii=False)
 
         headers = {HEADER_TS: str(body["ts"]), HEADER_DEV: device_id}
@@ -78,27 +66,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             headers[HEADER_SIG] = base64.b64encode(sig).decode("ascii")
 
         try:
-            async with session.post(server_url, data=data_json, headers=headers, timeout=10) as resp:
+            async with state["session"].post(server_url, data=data_json, headers=headers, timeout=10) as resp:
                 if resp.status >= 300:
                     _LOGGER.warning("PenguinPVDash: server responded %s", resp.status)
         except Exception as e:
             _LOGGER.warning("PenguinPVDash: post failed: %s", e)
 
-    # schedule + reschedule on options update
     interval = int(opt(CONF_INTERVAL, DEFAULT_INTERVAL))
     state["unsub"] = async_track_time_interval(hass, _send_once, timedelta(minutes=interval))
 
     async def _options_updated(hass: HomeAssistant, updated: ConfigEntry):
-        # refresh local opts
-        nonlocal server_url, device_id, unit, api_key
-        server_url = str(opt(CONF_SERVER_URL))
-        device_id  = opt(CONF_DEVICE_ID, "home")
-        unit       = (opt(CONF_OUTPUT_UNIT, "kW") or "kW").strip()
-        api_key    = opt(CONF_API_KEY, "")
-
-        # reschedule
-        if "unsub" in state and state["unsub"]:
-            state["unsub"]()
+        if state.get("unsub"): state["unsub"]()
         new_interval = int(opt(CONF_INTERVAL, DEFAULT_INTERVAL))
         state["unsub"] = async_track_time_interval(hass, _send_once, timedelta(minutes=new_interval))
 
@@ -107,8 +85,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     state = hass.data.get(DOMAIN, {}).pop(entry.entry_id, {})
-    if state.get("unsub"):
-        state["unsub"]()
-    if state.get("session"):
-        await state["session"].close()
+    if state.get("unsub"): state["unsub"]()
+    if state.get("session"): await state["session"].close()
     return True
