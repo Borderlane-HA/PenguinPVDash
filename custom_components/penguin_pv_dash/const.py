@@ -14,7 +14,6 @@ CONF_GRID_IMPORT_ENTITY = "grid_import_entity"
 CONF_BATT_CHARGE_ENTITY = "batt_charge_entity"
 CONF_BATT_DISCHARGE_ENTITY = "batt_discharge_entity"
 
-# NEW: daily totals (kWh) entity-ids (optional)
 CONF_PV_TOTAL_KWH_ENTITY = "pv_total_kwh_entity"
 CONF_FEEDIN_TOTAL_KWH_ENTITY = "feedin_total_kwh_entity"
 CONF_BATT_IN_TOTAL_KWH_ENTITY = "batt_in_total_kwh_entity"
@@ -22,7 +21,6 @@ CONF_BATT_OUT_TOTAL_KWH_ENTITY = "batt_out_total_kwh_entity"
 
 DEFAULT_INTERVAL = 1  # minutes
 DEFAULT_OUTPUT_UNIT = "kW"
-DECIMALS = 2
 
 HEADER_SIG = "X-PVDash-Signature"
 HEADER_TS = "X-PVDash-Timestamp"
