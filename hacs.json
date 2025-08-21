@@ -1,8 +1,8 @@
 {
   "name": "PenguinPVDash",
   "render_readme": true,
-  "country": [
-    "DE"
+  "domains": [
+    "penguin_pvdash"
   ],
-  "homeassistant": "2024.1.0"
+  "country": "DE"
 }
