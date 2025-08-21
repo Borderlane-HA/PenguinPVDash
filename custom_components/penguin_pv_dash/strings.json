@@ -21,7 +21,9 @@
           "pv_total_kwh_entity": "PV gesamt (kWh)",
           "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
           "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
-          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)"
+          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)",
+          "consumption_total_kwh_entity": "Hausverbrauch gesamt (kWh)",
+          "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)"
         }
       }
     }
@@ -46,7 +48,9 @@
           "pv_total_kwh_entity": "PV gesamt (kWh)",
           "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
           "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
-          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)"
+          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)",
+          "consumption_total_kwh_entity": "Hausverbrauch gesamt (kWh)",
+          "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)"
         }
       }
     }

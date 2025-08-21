@@ -25,3 +25,6 @@ DEFAULT_OUTPUT_UNIT = "kW"
 HEADER_SIG = "X-PVDash-Signature"
 HEADER_TS = "X-PVDash-Timestamp"
 HEADER_DEV = "X-PVDash-Device"
+
+CONF_CONS_TOTAL_KWH_ENTITY = "consumption_total_kwh_entity"
+CONF_IMPORT_TOTAL_KWH_ENTITY = "grid_import_total_kwh_entity"

@@ -55,6 +55,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "feed_in_total_kwh": _get(opt(CONF_FEEDIN_TOTAL_KWH_ENTITY)),
             "batt_in_total_kwh": _get(opt(CONF_BATT_IN_TOTAL_KWH_ENTITY)),
             "batt_out_total_kwh": _get(opt(CONF_BATT_OUT_TOTAL_KWH_ENTITY)),
+            "consumption_total_kwh": _get(opt(CONF_CONS_TOTAL_KWH_ENTITY)),
+            "grid_import_total_kwh": _get(opt(CONF_IMPORT_TOTAL_KWH_ENTITY)),
         }
         body = {k:v for k,v in payload.items() if v is not None}
         data_json = json.dumps(body, separators=(",", ":"), ensure_ascii=False)
