@@ -5,7 +5,7 @@
         "title": "Connect PenguinPVDash",
         "description": "Send PV/Battery/Grid data to an external server. Only populated values are transmitted.",
         "data": {
-          "server_url": "Server URL (optional, e.g. https://example.tld/ingest.php)",
+          "server_url": "Server URL (e.g. https://your-domain.tld/penguinpvdash/api/ingest.php)",
           "api_key": "Secret API Key (optional)",
           "device_id": "Device ID (optional)",
           "pv_entity": "PV Power",

@@ -5,7 +5,7 @@
         "title": "PenguinPVDash verbinden",
         "description": "Sende PV-/Batterie-/Netz-Daten an einen externen Server. Nur befüllte Werte werden übertragen.",
         "data": {
-          "server_url": "Server-URL (optional, z. B. https://example.tld/ingest.php)",
+          "server_url": "Server-URL (z. B. https://deine-domain.tld/penguinpvdash/api/ingest.php)",
           "api_key": "Geheimer API-Schlüssel (optional)",
           "device_id": "Gerätename (optional)",
           "pv_entity": "PV-Leistung",
