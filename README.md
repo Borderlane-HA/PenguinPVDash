@@ -12,13 +12,6 @@
 - **PHP-Server** (SQLite) mit Flow-Diagramm, dynamischem Batterie-Icon & **30-Tage-Tabelle**
 - Optionale **HMAC-Signatur** (API-Key) für sichere Übertragung
 
-## 📦 Struktur
-PenguinPVDash/
-├─ custom_components/
-│ └─ penguin_pvdash/ # Home Assistant Integration
-├─ server/ # PHP-Server (api/, inc/, assets/, tools/, data/.gitkeep)
-└─ README.md
-
 
 ---
 
@@ -71,7 +64,7 @@ Unter *Einrichten/Optionen* stehen diese Felder zur Verfügung:
 ## 🖥️ Server installieren
 **Voraussetzungen:** PHP 8+, PDO SQLite.
 
-1. Inhalt aus `/server/` auf den Webserver kopieren  
+1. Inhalt aus `/SERVER/` auf den Webserver kopieren  
 2. Schreibrechte für `server/data/` sicherstellen (SQLite-DB wird darin angelegt)  
 3. Seite aufrufen: `https://dein.server.tld/` → UI mit Flussdiagramm & 30-Tage-Tabelle
 
