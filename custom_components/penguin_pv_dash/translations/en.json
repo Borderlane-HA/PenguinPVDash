@@ -1,39 +1,59 @@
 {
+  "title": "PenguinPVDash",
   "config": {
     "step": {
       "user": {
-        "title": "Connect PenguinPVDash",
-        "description": "Send PV/Battery/Grid data to an external server. Only populated values are transmitted.",
+        "title": "PenguinPVDash konfigurieren",
+        "description": "Sende PV-/Energie-Daten periodisch an deinen Server.",
         "data": {
-          "server_url": "Server URL (e.g. https://your-domain.tld/penguinpvdash/api/ingest.php)",
-          "api_key": "Secret API Key (optional)",
-          "device_id": "Device ID (optional)",
-          "pv_entity": "PV Power",
-          "batt_soc_entity": "Battery SoC (%)",
-          "feedin_entity": "Instant Feed-in (to grid)",
-          "consumption_entity": "Current Consumption",
-          "grid_import_entity": "Current Grid Import",
-          "batt_charge_entity": "Battery Charge (sensor)",
-          "batt_discharge_entity": "Battery Discharge (sensor)",
-          "output_unit": "Output Unit",
-          "interval": "Interval (minutes)"
+          "server_url": "Server URL (z. B. https://pv.example.com/api/ingest.php)",
+          "api_key": "API Key (optional für HMAC)",
+          "device_id": "Geräte-ID",
+          "interval": "Intervall (Minuten)",
+          "output_unit": "Leistungseinheit der Sensoren (W oder kW)",
+          "pv_entity": "PV-Leistung (Sensor)",
+          "batt_soc_entity": "Batterie SOC (%)",
+          "feedin_entity": "Einspeisung (Leistung)",
+          "consumption_entity": "Hausverbrauch (Leistung)",
+          "grid_import_entity": "Netzbezug (Leistung)",
+          "batt_charge_entity": "Batterie IN (Leistung)",
+          "batt_discharge_entity": "Batterie OUT (Leistung)",
+          "pv_total_kwh_entity": "PV gesamt (kWh, Tageszähler)",
+          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh, Tageszähler)",
+          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh, Tageszähler)",
+          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh, Tageszähler)"
         }
       }
     },
-    "options": {
-      "step": {
-        "init": {
-          "data": {
-            "pv_entity": "PV Power",
-            "batt_soc_entity": "Battery SoC (%)",
-            "feedin_entity": "Feed-in",
-            "consumption_entity": "Consumption",
-            "grid_import_entity": "Grid Import",
-            "batt_charge_entity": "Battery Charge (sensor)",
-            "batt_discharge_entity": "Battery Discharge (sensor)",
-            "output_unit": "Output Unit (kW or W)",
-            "interval": "Interval (minutes)"
-          }
+    "error": {
+      "cannot_connect": "Kann keine Verbindung herstellen",
+      "invalid_url": "Ungültige URL"
+    },
+    "abort": {
+      "already_configured": "Bereits konfiguriert"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PenguinPVDash Optionen",
+        "data": {
+          "server_url": "Server URL",
+          "api_key": "API Key",
+          "device_id": "Geräte-ID",
+          "interval": "Intervall (Minuten)",
+          "output_unit": "Leistungseinheit (W oder kW)",
+          "pv_entity": "PV-Leistung (Sensor)",
+          "batt_soc_entity": "Batterie SOC (%)",
+          "feedin_entity": "Einspeisung (Leistung)",
+          "consumption_entity": "Hausverbrauch (Leistung)",
+          "grid_import_entity": "Netzbezug (Leistung)",
+          "batt_charge_entity": "Batterie IN (Leistung)",
+          "batt_discharge_entity": "Batterie OUT (Leistung)",
+          "pv_total_kwh_entity": "PV gesamt (kWh)",
+          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
+          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
+          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)"
         }
       }
     }
