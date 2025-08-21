@@ -2,9 +2,9 @@
   "domain": "penguin_pvdash",
   "name": "PenguinPVDash",
   "version": "0.3.5",
-  "documentation": "https://example.invalid/penguin_pvdash",
-  "issue_tracker": "https://example.invalid/penguin_pvdash/issues",
-  "iot_class": "local_push",
+  "documentation": "https://github.com/Borderlane-HA/PenguinPVDash",
+  "issue_tracker": "https://github.com/Borderlane-HA/PenguinPVDash/issues",
+  "iot_class": "Borderlane-HA",
   "config_flow": true,
   "codeowners": [
     "@penguin"
