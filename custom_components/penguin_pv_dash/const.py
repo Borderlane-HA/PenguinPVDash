@@ -7,13 +7,14 @@ CONF_INTERVAL = "interval"
 CONF_OUTPUT_UNIT = "output_unit"
 
 CONF_PV_ENTITY = "pv_entity"
-CONF_BATT_POWER_ENTITY = "batt_power_entity"
 CONF_BATT_SOC_ENTITY = "batt_soc_entity"
-
-# Newly requested entities
-CONF_FEEDIN_ENTITY = "feedin_entity"           # Momentane Einspeisung
-CONF_CONSUMPTION_ENTITY = "consumption_entity" # Aktueller Stromverbrauch
+CONF_FEEDIN_ENTITY = "feedin_entity"            # Momentane Einspeisung
+CONF_CONSUMPTION_ENTITY = "consumption_entity"  # Aktueller Stromverbrauch
 CONF_GRID_IMPORT_ENTITY = "grid_import_entity"  # Aktueller Netzbezug
+
+# Split battery into two sensors as requested
+CONF_BATT_CHARGE_ENTITY = "batt_charge_entity"      # Battery charging power sensor
+CONF_BATT_DISCHARGE_ENTITY = "batt_discharge_entity" # Battery discharging power sensor
 
 DEFAULT_INTERVAL = 10
 DEFAULT_OUTPUT_UNIT = "kW"  # or "W"

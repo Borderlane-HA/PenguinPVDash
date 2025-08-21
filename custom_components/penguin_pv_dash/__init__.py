@@ -4,6 +4,8 @@ import base64
 import hashlib
 import hmac
 import json
+import logging
+from urllib.parse import urlparse
 from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant, callback
@@ -20,11 +22,12 @@ from .const import (
     CONF_INTERVAL,
     CONF_OUTPUT_UNIT,
     CONF_PV_ENTITY,
-    CONF_BATT_POWER_ENTITY,
     CONF_BATT_SOC_ENTITY,
     CONF_FEEDIN_ENTITY,
     CONF_CONSUMPTION_ENTITY,
     CONF_GRID_IMPORT_ENTITY,
+    CONF_BATT_CHARGE_ENTITY,
+    CONF_BATT_DISCHARGE_ENTITY,
     DEFAULT_INTERVAL,
     DEFAULT_OUTPUT_UNIT,
     DECIMALS,
@@ -32,6 +35,8 @@ from .const import (
     HEADER_TS,
     HEADER_DEV,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list = []  # No entities; sender-only
 
@@ -53,7 +58,6 @@ def _convert_to_output_unit(value: float | None, unit_in: str | None, output: st
     if output == "kW":
         if unit_in == "W":
             return value / 1000.0
-        # assume already kW or unknown -> pass-through
         return value
     elif output == "W":
         if unit_in == "kW":
@@ -67,32 +71,36 @@ def _round_n(v, n):
     except Exception:
         return None
 
+def _normalize_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    u = str(url).strip()
+    if not u.lower().startswith(("http://", "https://")):
+        u = "https://" + u
+    # basic validation
+    parsed = urlparse(u)
+    if not parsed.scheme or not parsed.netloc:
+        return None
+    return u
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    data = {**entry.data, **entry.options}
-
-    server_url = data.get(CONF_SERVER_URL)  # may be None (server script later)
-    api_key = (data.get(CONF_API_KEY) or "").strip()
-    device_id = data.get(CONF_DEVICE_ID) or hass.config.location_name or "ha"
-    interval_min = int(data.get(CONF_INTERVAL, DEFAULT_INTERVAL))
-    output_unit = data.get(CONF_OUTPUT_UNIT, DEFAULT_OUTPUT_UNIT)
-
-    # Entities
-    pv_entity = data.get(CONF_PV_ENTITY)
-    batt_power_entity = data.get(CONF_BATT_POWER_ENTITY)
-    batt_soc_entity = data.get(CONF_BATT_SOC_ENTITY)
-    feedin_entity = data.get(CONF_FEEDIN_ENTITY)
-    consumption_entity = data.get(CONF_CONSUMPTION_ENTITY)
-    grid_import_entity = data.get(CONF_GRID_IMPORT_ENTITY)
-
     session = aiohttp_client.async_get_clientsession(hass)
 
+    def opt(key, default=None):
+        # prefer options over data
+        return entry.options.get(key, entry.data.get(key, default))
+
     async def _send_once(now=None):
-        # If no server URL yet, do nothing
+        server_url = _normalize_url(entry.data.get(CONF_SERVER_URL))
         if not server_url:
-            return
+            return  # nothing to send yet
+
+        api_key = (entry.data.get(CONF_API_KEY) or "").strip()
+        device_id = entry.data.get(CONF_DEVICE_ID) or hass.config.location_name or "ha"
+        output_unit = opt(CONF_OUTPUT_UNIT, DEFAULT_OUTPUT_UNIT)
 
         states = hass.states
 
@@ -104,36 +112,39 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             unit_in = st.attributes.get("unit_of_measurement") if st else None
             return _convert_to_output_unit(val, unit_in, output_unit)
 
-        # Build payload with only present keys
         payload = {"ts": int(datetime.utcnow().timestamp())}
 
-        pv = _round_n(get_val(pv_entity), DECIMALS)
+        pv = _round_n(get_val(opt(CONF_PV_ENTITY)), DECIMALS)
         if pv is not None:
             payload["pv_power"] = pv
 
-        batt_kw = _round_n(get_val(batt_power_entity), DECIMALS)
-        if batt_kw is not None:
-            payload["battery_power"] = batt_kw
+        # Battery charge/discharge split
+        batt_charge = _round_n(get_val(opt(CONF_BATT_CHARGE_ENTITY)), DECIMALS)
+        if batt_charge is not None:
+            payload["battery_charge"] = batt_charge
 
-        batt_soc = _round_n(_safe_float(states.get(batt_soc_entity)), DECIMALS) if batt_soc_entity else None
+        batt_discharge = _round_n(get_val(opt(CONF_BATT_DISCHARGE_ENTITY)), DECIMALS)
+        if batt_discharge is not None:
+            payload["battery_discharge"] = batt_discharge
+
+        batt_soc = _round_n(_safe_float(states.get(opt(CONF_BATT_SOC_ENTITY))), DECIMALS)
         if batt_soc is not None:
             payload["battery_soc"] = batt_soc
 
-        feedin = _round_n(get_val(feedin_entity), DECIMALS)
+        feedin = _round_n(get_val(opt(CONF_FEEDIN_ENTITY)), DECIMALS)
         if feedin is not None:
             payload["feed_in"] = feedin
 
-        consumption = _round_n(get_val(consumption_entity), DECIMALS)
+        consumption = _round_n(get_val(opt(CONF_CONSUMPTION_ENTITY)), DECIMALS)
         if consumption is not None:
             payload["consumption"] = consumption
 
-        grid_import = _round_n(get_val(grid_import_entity), DECIMALS)
+        grid_import = _round_n(get_val(opt(CONF_GRID_IMPORT_ENTITY)), DECIMALS)
         if grid_import is not None:
             payload["grid_import"] = grid_import
 
-        # If only timestamp (no metrics), skip sending
         if len(payload) == 1:
-            return
+            return  # only ts present
 
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
 
@@ -150,9 +161,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             async with session.post(server_url, data=body, headers=headers, timeout=15) as resp:
                 await resp.text()
         except Exception as e:
-            hass.logger.warning("penguin_pvdash send failed: %s", e)
+            _LOGGER.warning("penguin_pvdash send failed: %s", e)
 
-    # Send immediately once (if URL provided), then on interval
+    # schedule
+    interval_min = int(opt(CONF_INTERVAL, DEFAULT_INTERVAL))
     await _send_once()
 
     @callback
@@ -160,13 +172,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         reg = hass.data[DOMAIN][entry.entry_id]
         if reg.get("unsub"):
             reg["unsub"]()
-        minutes = int(entry.options.get(CONF_INTERVAL, entry.data.get(CONF_INTERVAL, DEFAULT_INTERVAL)))
+        minutes = int(opt(CONF_INTERVAL, DEFAULT_INTERVAL))
         reg["unsub"] = async_track_time_interval(hass, _send_once, timedelta(minutes=minutes))
 
     unsub = async_track_time_interval(hass, _send_once, timedelta(minutes=interval_min))
-
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"unsub": unsub, "reschedule": _reschedule}
-
     entry.async_on_unload(entry.add_update_listener(_options_updated))
     return True
 
