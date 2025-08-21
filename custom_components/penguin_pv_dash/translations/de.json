@@ -1,1 +1,39 @@
-
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PenguinPVDash verbinden",
+        "description": "Sende PV-/Batterie- und Netz-Daten an einen externen Server (Übertragung nur für befüllte Werte).",
+        "data": {
+          "server_url": "Server-URL (optional, z. B. https://example.tld/ingest.php)",
+          "api_key": "Geheimer API-Schlüssel (optional)",
+          "device_id": "Gerätename (optional)",
+          "pv_entity": "PV-Leistung",
+          "batt_power_entity": "Batterie-Leistung (positiv=laden, negativ=entladen)",
+          "batt_soc_entity": "Batterie SoC (%)",
+          "feedin_entity": "Momentane Einspeisung (ins Netz)",
+          "consumption_entity": "Aktueller Stromverbrauch",
+          "grid_import_entity": "Aktueller Netzbezug",
+          "output_unit": "Ausgabe-Einheit",
+          "interval": "Intervall (Minuten)"
+        }
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "data": {
+            "pv_entity": "PV-Leistung",
+            "batt_power_entity": "Batterie-Leistung",
+            "batt_soc_entity": "Batterie SoC (%)",
+            "feedin_entity": "Momentane Einspeisung",
+            "consumption_entity": "Aktueller Stromverbrauch",
+            "grid_import_entity": "Aktueller Netzbezug",
+            "output_unit": "Ausgabe-Einheit (kW oder W)",
+            "interval": "Intervall (Minuten)"
+          }
+        }
+      }
+    }
+  }
+}
