@@ -38,7 +38,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list = []  # No entities; sender-only
+PLATFORMS: list = []  # sender-only
 
 def _safe_float(state_obj):
     if not state_obj:
@@ -77,7 +77,6 @@ def _normalize_url(url: str | None) -> str | None:
     u = str(url).strip()
     if not u.lower().startswith(("http://", "https://")):
         u = "https://" + u
-    # basic validation
     parsed = urlparse(u)
     if not parsed.scheme or not parsed.netloc:
         return None
@@ -90,13 +89,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     session = aiohttp_client.async_get_clientsession(hass)
 
     def opt(key, default=None):
-        # prefer options over data
         return entry.options.get(key, entry.data.get(key, default))
 
     async def _send_once(now=None):
-        server_url = _normalize_url(entry.data.get(CONF_SERVER_URL))
+        server_url = _normalize_url(opt(CONF_SERVER_URL))
         if not server_url:
-            return  # nothing to send yet
+            _LOGGER.debug("penguin_pvdash: server_url not set, skip sending")
+            return
 
         api_key = (entry.data.get(CONF_API_KEY) or "").strip()
         device_id = entry.data.get(CONF_DEVICE_ID) or hass.config.location_name or "ha"
@@ -118,7 +117,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if pv is not None:
             payload["pv_power"] = pv
 
-        # Battery charge/discharge split
         batt_charge = _round_n(get_val(opt(CONF_BATT_CHARGE_ENTITY)), DECIMALS)
         if batt_charge is not None:
             payload["battery_charge"] = batt_charge
@@ -144,7 +142,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             payload["grid_import"] = grid_import
 
         if len(payload) == 1:
-            return  # only ts present
+            _LOGGER.debug("penguin_pvdash: no populated metrics for this cycle")
+            return
 
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
 
@@ -159,7 +158,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         try:
             async with session.post(server_url, data=body, headers=headers, timeout=15) as resp:
-                await resp.text()
+                txt = await resp.text()
+                if resp.status >= 300:
+                    _LOGGER.warning("penguin_pvdash: server responded %s: %s", resp.status, txt[:200])
         except Exception as e:
             _LOGGER.warning("penguin_pvdash send failed: %s", e)
 
@@ -184,9 +185,3 @@ async def _options_updated(hass: HomeAssistant, entry: ConfigEntry):
     data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
     if data and data.get("reschedule"):
         data["reschedule"]()
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    data = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
-    if data and data.get("unsub"):
-        data["unsub"]()
-    return True

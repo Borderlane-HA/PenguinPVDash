@@ -8,16 +8,14 @@ CONF_OUTPUT_UNIT = "output_unit"
 
 CONF_PV_ENTITY = "pv_entity"
 CONF_BATT_SOC_ENTITY = "batt_soc_entity"
-CONF_FEEDIN_ENTITY = "feedin_entity"            # Momentane Einspeisung
-CONF_CONSUMPTION_ENTITY = "consumption_entity"  # Aktueller Stromverbrauch
-CONF_GRID_IMPORT_ENTITY = "grid_import_entity"  # Aktueller Netzbezug
-
-# Split battery into two sensors as requested
-CONF_BATT_CHARGE_ENTITY = "batt_charge_entity"      # Battery charging power sensor
-CONF_BATT_DISCHARGE_ENTITY = "batt_discharge_entity" # Battery discharging power sensor
+CONF_FEEDIN_ENTITY = "feedin_entity"
+CONF_CONSUMPTION_ENTITY = "consumption_entity"
+CONF_GRID_IMPORT_ENTITY = "grid_import_entity"
+CONF_BATT_CHARGE_ENTITY = "batt_charge_entity"
+CONF_BATT_DISCHARGE_ENTITY = "batt_discharge_entity"
 
 DEFAULT_INTERVAL = 10
-DEFAULT_OUTPUT_UNIT = "kW"  # or "W"
+DEFAULT_OUTPUT_UNIT = "kW"
 DECIMALS = 2
 
 HEADER_SIG = "X-PVDash-Signature"
