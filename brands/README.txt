@@ -1,1 +1,1 @@
-
+Brand images for custom integration 'penguin_pvdash'.
