@@ -21,12 +21,6 @@ require_once __DIR__ . '/inc/db.php';
         <g id="tok_batt_house"></g>
       </svg>
 
-      <!-- Labels (over lines) -->
-      <div class="flow-label" id="lab_pv_house" style="left:430px; top:22px">PV→Haus 0.0 kW</div>
-      <div class="flow-label" id="lab_pv_grid"  style="left:430px; top:140px">PV→Netz 0.0 kW</div>
-      <div class="flow-label" id="lab_pv_batt"  style="left:140px; top:150px">PV→Batterie 0.0 kW</div>
-      <div class="flow-label" id="lab_batt_house" style="left:430px; top:80px">Batterie→Haus 0.0 kW</div>
-
       <!-- Nodes -->
       <div class="node" id="n_pv"><h3>PV</h3><div class="sub"><span id="pv_now">0.0 kW</span></div></div>
       <div class="node" id="n_house"><h3>Zu Hause</h3><div class="sub"><span id="cons_now">0.0 kW</span></div></div>
