@@ -80,6 +80,7 @@ $PVDASH_API_KEYS = [
 
 **Server:**
 !(https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1.png?raw=true)
+![status](https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1.png)
 
 **Integration:**
 !(https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2a.png?raw=true)
