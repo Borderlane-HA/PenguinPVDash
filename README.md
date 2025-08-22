@@ -74,3 +74,16 @@ $PVDASH_API_KEYS = [
   // "home" => "dein-langer-api-schluessel" <- Key Anpassen = der Konfiguration API Key
 ];
 
+
+
+## 🖥️ Screenshots
+
+**Server:**
+(https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1.png?raw=true)
+
+**Integration:**
+(https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2a.png?raw=true)
+(https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2b.png?raw=true)
+(https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2c.png?raw=true)
+
+
