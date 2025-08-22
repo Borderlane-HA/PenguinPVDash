@@ -80,13 +80,10 @@ $PVDASH_API_KEYS = [
 
 **Server:**
 <img src="image1.png" width="425"/> <img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1.png" width="425"/> 
-![status](https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1.png)
 
 **Integration:**
-![](https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2a.png)
-
-![](https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2b.png)
-
-![](https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2c.png)
+<img src="image1.png" width="425"/> <img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2a.png)" width="425"/><br> 
+<img src="image1.png" width="425"/> <img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2b.png)" width="425"/><br>
+<img src="image1.png" width="425"/> <img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2c.png)" width="425"/><br> 
 
 
