@@ -21,10 +21,16 @@ require_once __DIR__ . '/inc/db.php';
         <g id="tok_batt_house"></g>
       </svg>
 
+      <!-- Labels (over lines) -->
+      <!-- <div class="flow-label" id="lab_pv_house" style="left:430px; top:22px">PV→Haus 0.0 kW</div> -->
+      <!-- <div class="flow-label" id="lab_pv_grid"  style="left:430px; top:140px">PV→Netz 0.0 kW</div> -->
+      <!-- <div class="flow-label" id="lab_pv_batt"  style="left:140px; top:150px">PV→Batterie 0.0 kW</div> -->
+      <!-- <div class="flow-label" id="lab_batt_house" style="left:430px; top:80px">Batterie→Haus 0.0 kW</div> -->
+
       <!-- Nodes -->
-      <div class="node" id="n_pv"><h3>PV</h3><div class="sub"><span id="pv_now">0.0 kW</span></div></div>
-      <div class="node" id="n_house"><h3>Zu Hause</h3><div class="sub"><span id="cons_now">0.0 kW</span></div></div>
-      <div class="node" id="n_grid"><h3>Netz</h3><div class="sub"><span id="grid_now">0.0 kW</span></div></div>
+      <div class="node" id="n_pv"><h3>PV-Erzeugung</h3><div class="sub"><span id="pv_now">0.0 kW</span></div></div>
+      <div class="node" id="n_house"><h3>Hausverbrauch</h3><div class="sub"><span id="cons_now">0.0 kW</span></div></div>
+      <div class="node" id="n_grid"><h3>Netzbetreiber</h3><div class="sub"><span id="grid_now">0.0 kW</span></div></div>
       <div class="node" id="n_batt">
         <div class="bat" id="bat_icon"><div class="fill" style="width:0%"></div></div>
         <div><h3>Batterie <span id="soc_txt">0%</span></h3><div class="sub">In: <span id="b_in_now">0.0</span> kW · Out: <span id="b_out_now">0.0</span> kW</div></div>
@@ -34,17 +40,17 @@ require_once __DIR__ . '/inc/db.php';
 </div>
 
 <div class="card">
-  <div class="card-head"><h2>Heute – Tageswerte (kWh)</h2></div>
+  <div class="card-head"><h2>Heute – Tageswerte</h2></div>
   <div class="kpi3">
-    <div class="box"><div class="label">PV gesamt</div><div class="val" id="k_pv">–</div></div>
-    <div class="box"><div class="label">Batterie</div><div class="lines">
-      <div class="row"><span>geladen</span><span id="k_bin">–</span></div>
-      <div class="row"><span>entladen</span><span id="k_bout">–</span></div>
+    <div class="box"><div class="label">PV gesamt (kWh):</div><div class="val" id="k_pv">–</div></div>
+    <div class="box"><div class="label">Batterie:</div><div class="lines">
+      <div class="row"><span>geladen (kWh):</span><span id="k_bin">–</span></div>
+      <div class="row"><span>entladen (kWh):</span><span id="k_bout">–</span></div>
     </div></div>
-    <div class="box"><div class="label">Haushalt & Netz</div><div class="lines">
-      <div class="row"><span>Hausverbrauch</span><span id="k_cons">–</span></div>
-      <div class="row"><span>Netzbezug</span><span id="k_imp">–</span></div>
-      <div class="row"><span>Einspeisung</span><span id="k_feed">–</span></div>
+    <div class="box"><div class="label">Haushalt & Netz:</div><div class="lines">
+      <div class="row"><span>Hausverbrauch (kWh):</span><span id="k_cons">–</span></div>
+      <div class="row"><span>Netzbezug (kWh):</span><span id="k_imp">–</span></div>
+      <div class="row"><span>Einspeisung (kWh):</span><span id="k_feed">–</span></div>
     </div></div>
   </div>
 </div>
