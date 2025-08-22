@@ -79,7 +79,7 @@ $PVDASH_API_KEYS = [
 ## 🖥️ Screenshots
 
 **Server:**
-<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1.png"/> <br><rb>
+<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1a.png"/> <br><rb>
 
 **Integration:**
 <br>
