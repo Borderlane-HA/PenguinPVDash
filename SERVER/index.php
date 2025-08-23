@@ -45,10 +45,10 @@ function th(string $key, array $vars = []): string {
       <div class="flow">
         <svg viewBox="0 0 900 260" preserveAspectRatio="none">
           <!-- Linien -->
-          <path id="l_pv_house"   d="M160,50 C360,50 540,50 740,50"   stroke="#6be29f" stroke-width="4" fill="none"></path>
-          <path id="l_pv_grid"    d="M160,70 C360,110 540,190 740,230" stroke="#6be29f" stroke-width="4" fill="none"></path>
-          <path id="l_pv_batt"    d="M130,70 C220,120 220,200 130,210" stroke="#6be29f" stroke-width="4" fill="none"></path>
-          <path id="l_batt_house" d="M90,210  C320,180 520,90  740,50"  stroke="#ffd480" stroke-width="4" fill="none"></path>
+          <path id="l_pv_house"   d="M160,50 C360,50 540,50 740,50"   stroke="#6be29f" stroke-width="3" fill="none"></path>
+          <path id="l_pv_grid"    d="M160,70 C360,110 540,190 740,230" stroke="#6be29f" stroke-width="3" fill="none"></path>
+          <path id="l_pv_batt"    d="M130,70 C220,120 220,200 130,210" stroke="#6be29f" stroke-width="3" fill="none"></path>
+          <path id="l_batt_house" d="M90,210  C320,180 520,90  740,50"  stroke="#ffd480" stroke-width="3" fill="none"></path>
 
           <!-- Token-Gruppen für Animation -->
           <g id="tok_pv_house"></g>
@@ -229,10 +229,10 @@ async function refreshLive(){
   setFlowVisible('l_batt_house', batt_house_on);
 
   // Linienstärke nach Leistung
-  if(pv_house_on)   document.getElementById('l_pv_house').setAttribute('stroke-width', scaleWidth(cons));
-  if(pv_grid_on)    document.getElementById('l_pv_grid').setAttribute('stroke-width',  scaleWidth(exportKW));
-  if(pv_batt_on)    document.getElementById('l_pv_batt').setAttribute('stroke-width',  scaleWidth(bi));
-  if(batt_house_on) document.getElementById('l_batt_house').setAttribute('stroke-width',scaleWidth(bo));
+  // if(pv_house_on)   document.getElementById('l_pv_house').setAttribute('stroke-width', scaleWidth(cons));
+  // if(pv_grid_on)    document.getElementById('l_pv_grid').setAttribute('stroke-width',  scaleWidth(exportKW));
+  // if(pv_batt_on)    document.getElementById('l_pv_batt').setAttribute('stroke-width',  scaleWidth(bi));
+  // if(batt_house_on) document.getElementById('l_batt_house').setAttribute('stroke-width',scaleWidth(bo));
 
   // Linien-Labels aktualisieren
   setLabel('lab_pv_house',   'PV→Haus '     + kw(cons)     + ' kW');
