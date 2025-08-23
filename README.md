@@ -70,9 +70,12 @@ Unter *Einrichten/Optionen* stehen diese Felder zur Verfügung:
 
 ### `server/inc/config.php` 
 
-$PVDASH_API_KEYS = [
-  // "home" => "dein-langer-api-schluessel" <- Key Anpassen = der Konfiguration API Key
-];
+// false/true :: true if API Key set; device Name and API Key same in Integration
+$PVDASH_REQUIRE_AUTH = true;
+// Device Name and API Key (Standard: home)
+$PVDASH_API_KEYS = [ "home" => "MYAPIKEY" ];
+// Language German (de) or english (en)
+$lang_from_config = 'de';
 
 
 
