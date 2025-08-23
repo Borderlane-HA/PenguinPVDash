@@ -1,6 +1,31 @@
 <?php
 require_once __DIR__ . '/inc/db.php';
+require __DIR__ . '/inc/config.php';
+
+function loadTranslations(string $lang): array {
+    $file = __DIR__ . "/lang/{$lang}.php";
+    return is_file($file) ? (include $file) : [];
+}
+
+$T  = loadTranslations(APP_LANG);
+$EN = loadTranslations('en'); // Fallback
+
+function t(string $key, array $vars = []): string {
+    global $T, $EN;
+    $text = $T[$key] ?? $EN[$key] ?? $key; // Fallback auf EN oder Key
+    foreach ($vars as $k => $v) {
+        $text = str_replace('{' . $k . '}', (string)$v, $text);
+    }
+    return $text;
+}
+
+// Für sichere HTML-Ausgabe:
+function th(string $key, array $vars = []): string {
+    return htmlspecialchars(t($key, $vars), ENT_QUOTES, 'UTF-8');
+}
+
 ?>
+
 <!doctype html>
 <html>
 <head>
@@ -12,6 +37,7 @@ require_once __DIR__ . '/inc/db.php';
 <body>
 <div class="wrap">
   <h1>PenguinPVDash</h1>
+
 
   <!-- ====== Flow (mit animierten Kreisen) ====== -->
   <div class="card">
@@ -39,29 +65,28 @@ require_once __DIR__ . '/inc/db.php';
 
         <!-- Knoten -->
         <div class="node" id="n_pv">
-          <h3>PV-Erzeugung</h3>
+          <h3><?= th('t1') ?></h3>
           <div class="sub"><span id="pv_now">0,0 kW</span></div>
         </div>
 
         <div class="node" id="n_house">
-          <h3>Hausverbrauch</h3>
+          <h3><?= th('t2') ?></h3>
           <div class="sub"><span id="cons_now">0,0 kW</span></div>
         </div>
 
         <div class="node" id="n_grid">
-          <h3>Netzbetreiber</h3>
-          <!-- WICHTIG: Hier werden Bezug UND Einspeisung live angezeigt -->
+          <h3><?= th('t6') ?></h3>
           <div class="sub">
-            Bezug: <span id="grid_import_now">0,0</span> kW ·
-            Einspeisung: <span id="export_now">0,0</span> kW
+            <?= th('t7') ?>: <span id="grid_import_now">0,0</span> kW ·
+            <?= th('t8') ?>: <span id="export_now">0,0</span> kW
           </div>
         </div>
 
         <div class="node" id="n_batt">
           <div class="bat" id="bat_icon"><div class="fill" style="width:0%"></div></div>
           <div>
-            <h3>Batterie <span id="soc_txt">0%</span></h3>
-            <div class="sub">In: <span id="b_in_now">0,0</span> kW · Out: <span id="b_out_now">0,0</span> kW</div>
+            <h3><?= th('t3') ?> <span id="soc_txt">0%</span></h3>
+            <div class="sub"><?= th('t4') ?>: <span id="b_in_now">0,0</span> kW · <?= th('t5') ?>: <span id="b_out_now">0,0</span> kW</div>
           </div>
         </div>
       </div>
@@ -70,38 +95,37 @@ require_once __DIR__ . '/inc/db.php';
 
   <!-- ====== Heute (Tageswerte kWh) ====== -->
   <div class="card">
-    <div class="card-head"><h2>Heute – Tageswerte</h2></div>
+    <div class="card-head"><h2><?= th('t9') ?></h2></div>
     <div class="kpi3">
       <div class="box">
-        <div class="label">PV gesamt (kWh):</div>
+        <div class="label"><?= th('t10') ?> (kWh):</div>
         <div class="val" id="k_pv">–</div>
       </div>
       <div class="box">
-        <div class="label">Batterie:</div>
+        <div class="label"><?= th('t11') ?>:</div>
         <div class="lines">
-          <div class="row"><span>geladen (kWh):</span><span id="k_bin">–</span></div>
-          <div class="row"><span>entladen (kWh):</span><span id="k_bout">–</span></div>
+          <div class="row"><span><?= th('t12') ?> (kWh):</span><span id="k_bin">–</span></div>
+          <div class="row"><span><?= th('t13') ?> (kWh):</span><span id="k_bout">–</span></div>
         </div>
       </div>
       <div class="box">
-        <div class="label">Haushalt & Netz:</div>
+        <div class="label"><?= th('t14') ?>:</div>
         <div class="lines">
-          <div class="row"><span>Hausverbrauch (kWh):</span><span id="k_cons">–</span></div>
-          <div class="row"><span>Netzbezug (kWh):</span><span id="k_imp">–</span></div>
-          <div class="row"><span>Einspeisung (kWh):</span><span id="k_feed">–</span></div>
+          <div class="row"><span><?= th('t15') ?> (kWh):</span><span id="k_cons">–</span></div>
+          <div class="row"><span><?= th('t16') ?> (kWh):</span><span id="k_imp">–</span></div>
+          <div class="row"><span><?= th('t17') ?> (kWh):</span><span id="k_feed">–</span></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ====== History (30 Tage) ====== -->
   <div class="card">
-    <div class="card-head"><h2>Letzte 30 Tage (kWh)</h2></div>
+    <div class="card-head"><h2><?= th('t18') ?> (kWh)</h2></div>
     <div class="table-wrap">
       <table class="fancy">
         <thead>
           <tr>
-            <th>Tag</th><th>PV</th><th>Einspeisung</th><th>Batt IN</th><th>Batt OUT</th><th>Verbrauch</th><th>Netzbezug</th>
+            <th><?= th('t19') ?></th><th><?= th('t20') ?></th><th><?= th('t21') ?></th><th><?= th('t22') ?></th><th><?= th('t23') ?></th><th><?= th('t24') ?></th><th><?= th('t25') ?></th>
           </tr>
         </thead>
         <tbody id="hist-tbody"></tbody>
@@ -110,8 +134,8 @@ require_once __DIR__ . '/inc/db.php';
   </div>
 
   <div class="card">
-    <div class="card-head"><h2>Mehr…</h2></div>
-    <p>Erweiterte Auswertung: <a href="stats.php" target="_blank">Stats öffnen</a></p>
+    <div class="card-head"><h2><?= th('t26') ?>…</h2></div>
+    <p><?= th('t27') ?>: <a href="stats.php" target="_blank"><?= th('t28') ?></a></p>
   </div>
 
 </div>
