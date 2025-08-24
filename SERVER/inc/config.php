@@ -12,6 +12,15 @@ $PVDASH_API_KEYS = [ /* "home" => "MYSECRETAPIKEY" */ ];
 // Language German (de) or english (en)
 $lang_from_config = 'de';
 
+// Trust HA reset at midnight?
+$PVDASH_TRUST_MIDNIGHT_RESETS = true;
+
+// Quiet window around midnight to avoid drift issues
+$PVDASH_QUIET_WINDOW_ENABLED = true;      // on/off
+$PVDASH_QUIET_MODE = 'ignore_totals';     // 'ignore_totals' or 'drop_all'
+$PVDASH_QUIET_START_MIN = 23*60 + 58;     // 23:58 -> Minuten seit 00:00
+$PVDASH_QUIET_END_MIN   = 2;              // 00:02
+
 // Set Config end
 
 $allowed = ['de','en'];
