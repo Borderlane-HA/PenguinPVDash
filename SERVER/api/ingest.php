@@ -3,6 +3,19 @@ require_once __DIR__ . '/../inc/db.php';
 require_once __DIR__ . '/../inc/auth.php';
 require_once __DIR__ . '/../inc/helpers.php';
 
+function _pvdash_in_quiet_window($ts){
+  if (empty($GLOBALS['PVDASH_QUIET_WINDOW_ENABLED'])) return false;
+  $min = intval(date('G',$ts))*60 + intval(date('i',$ts)); // lokale Minuten seit 00:00
+  $start = intval($GLOBALS['PVDASH_QUIET_START_MIN'] ?? (23*60+58));
+  $end   = intval($GLOBALS['PVDASH_QUIET_END_MIN']   ?? 2);
+  // Fenster kann über Mitternacht gehen
+  if ($end < $start) {
+    return ($min >= $start) || ($min <= $end);
+  } else {
+    return ($min >= $start) && ($min <= $end);
+  }
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
 /* ---------- Auth (optional HMAC) ---------- */
@@ -27,6 +40,25 @@ $keys = [
 ];
 $vals = [];
 foreach ($keys as $k) { $vals[$k] = array_key_exists($k,$payload) ? floatval($payload[$k]) : null; }
+
+// Stats Test
+// --- QUIET WINDOW um Mitternacht ---
+$in_quiet = _pvdash_in_quiet_window($ts);
+if ($in_quiet) {
+  if (($GLOBALS['PVDASH_QUIET_MODE'] ?? 'ignore_totals') === 'drop_all') {
+    // Sample komplett verwerfen (kein Insert, kein State-Update)
+    echo json_encode(['ok'=>true,'note'=>'quiet-window drop_all']); exit;
+  } else {
+    // Totals unterdrücken, Leistung bleibt zur Integration erhalten
+    foreach ([
+      'pv_total_kwh','feed_in_total_kwh','batt_in_total_kwh',
+      'batt_out_total_kwh','consumption_total_kwh','grid_import_total_kwh'
+    ] as $k) { $vals[$k] = null; }
+  }
+}
+// --- /QUIET WINDOW ---
+
+// Stats Test Ende
 
 /* ---------- Persist raw sample ---------- */
 $ins = $pdo->prepare('INSERT INTO samples (device, ts, unit, pv_power, battery_charge, battery_discharge, feed_in, consumption, grid_import, battery_soc, pv_total_kwh, feed_in_total_kwh, batt_in_total_kwh, batt_out_total_kwh, consumption_total_kwh, grid_import_total_kwh)
