@@ -8,7 +8,7 @@ if (!is_dir(__DIR__ . '/../data')) { @mkdir(__DIR__ . '/../data', 0775, true); }
 // false/true :: true if API Key set
 $PVDASH_REQUIRE_AUTH = true;
 // Device Name and API Key (Standard: home)
-$PVDASH_API_KEYS = [ /* "home" => "MYSECRETAPIKEY" */ ];
+$PVDASH_API_KEYS = [ "home" => "MYSECRETAPIKEY" ];
 // Language German (de) or english (en)
 $lang_from_config = 'de';
 
@@ -16,10 +16,12 @@ $lang_from_config = 'de';
 $PVDASH_TRUST_MIDNIGHT_RESETS = true;
 
 // Quiet window around midnight to avoid drift issues
+$PVDASH_RESET_EPS_KWH = 0.2;
+
 $PVDASH_QUIET_WINDOW_ENABLED = true;      // on/off
 $PVDASH_QUIET_MODE = 'ignore_totals';     // 'ignore_totals' or 'drop_all'
 $PVDASH_QUIET_START_MIN = 23*60 + 58;     // 23:58 -> Minuten seit 00:00
-$PVDASH_QUIET_END_MIN   = 2;              // 00:02
+$PVDASH_QUIET_END_MIN   = 5;              // 00:02
 
 // Set Config end
 
