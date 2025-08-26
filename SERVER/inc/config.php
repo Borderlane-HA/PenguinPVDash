@@ -13,7 +13,7 @@ $PVDASH_API_KEYS = [ "home" => "MYSECRETAPIKEY" ];
 $lang_from_config = 'de';
 
 // Trust HA reset at midnight?
-$PVDASH_TRUST_MIDNIGHT_RESETS = true;
+$PVDASH_TRUST_MIDNIGHT_RESETS = false;
 
 // Quiet window around midnight to avoid drift issues
 $PVDASH_RESET_EPS_KWH = 0.2;
