@@ -10,11 +10,15 @@ header('Content-Type: application/json; charset=utf-8');
  * ---------------------------------------------------------*/
 function _pvdash_in_quiet_window($ts){
   if (empty($GLOBALS['PVDASH_QUIET_WINDOW_ENABLED'])) return false;
+  // nutzt Payload-TS (wie zuvor)
   $min = intval(date('G',$ts))*60 + intval(date('i',$ts)); // Minuten seit 00:00
   $start = intval($GLOBALS['PVDASH_QUIET_START_MIN'] ?? (23*60+58));
   $end   = intval($GLOBALS['PVDASH_QUIET_END_MIN']   ?? 2);
-  if ($end < $start) return ($min >= $start) || ($min <= $end);
-  return ($min >= $start) && ($min <= $end);
+  if ($end < $start) {
+    return ($min >= $start) || ($min <= $end);
+  } else {
+    return ($min >= $start) && ($min <= $end);
+  }
 }
 
 /* -----------------------------------------------------------
@@ -41,11 +45,11 @@ $keys = [
   'pv_total_kwh','feed_in_total_kwh','batt_in_total_kwh','batt_out_total_kwh','consumption_total_kwh','grid_import_total_kwh'
 ];
 $vals = [];
-foreach ($keys as $k) { $vals[$k] = array_key_exists($k,$payload) ? floatval($payload[$k]) : null; }
-$GLOBALS['vals'] = $vals;
+foreach ($keys as $k) { $vals[$k] = array_key_exists($k,$payload) ? ($payload[$k] === null ? null : floatval($payload[$k])) : null; }
+$GLOBALS['vals'] = $vals; // für apply_metric()
 
 /* -----------------------------------------------------------
- * Quiet-window anwenden
+ * Quiet-window anwenden (wie zuvor)
  * ---------------------------------------------------------*/
 $in_quiet = _pvdash_in_quiet_window($ts);
 if ($in_quiet) {
@@ -56,66 +60,53 @@ if ($in_quiet) {
       'pv_total_kwh','feed_in_total_kwh','batt_in_total_kwh',
       'batt_out_total_kwh','consumption_total_kwh','grid_import_total_kwh'
     ] as $k) { $vals[$k] = null; }
-    $GLOBALS['vals'] = $vals;
+    $GLOBALS['vals'] = $vals; // aktualisieren
   }
 }
 
 /* -----------------------------------------------------------
- * Letztes Sample (vor aktuellem Insert) lesen
+ * Letztes Sample (vor aktuellem Insert) laden
  * ---------------------------------------------------------*/
-$prevSel = $pdo->prepare('SELECT ts,
-  pv_total_kwh, feed_in_total_kwh, batt_in_total_kwh, batt_out_total_kwh,
-  consumption_total_kwh, grid_import_total_kwh
+$prevSel = $pdo->prepare('SELECT ts, 
+  pv_total_kwh, feed_in_total_kwh, batt_in_total_kwh, batt_out_total_kwh, consumption_total_kwh, grid_import_total_kwh
   FROM samples WHERE device=? ORDER BY ts DESC LIMIT 1');
 $prevSel->execute([$device]);
 $prevRow = $prevSel->fetch(PDO::FETCH_ASSOC);
 $GLOBALS['PVDASH_PREV_TS'] = $prevRow ? intval($prevRow['ts']) : null;
 
 /* -----------------------------------------------------------
- * Monotonie-Drop-Detektion (now < prev - eps) → Tageswechsel
- * Nur wenn plausibel (frühe Minuten oder prevDay != currDayByTs)
+ * *** PV-ONLY: Drop-Erkennung für PV gesamt ***
+ * Wenn pv_total_kwh_now < pv_total_kwh_prev - eps,
+ * und (Nacht ODER Kalendertag gewechselt), dann "roll by PV".
  * ---------------------------------------------------------*/
-$MONO_EPS = floatval($GLOBALS['PVDASH_MONO_DROP_EPS_KWH'] ?? 0.05);
-$ROLL_GUARD_MIN = intval($GLOBALS['PVDASH_ROLL_GUARD_MIN'] ?? 90);
+$PV_DROP_EPS = floatval($GLOBALS['PVDASH_MONO_DROP_EPS_KWH'] ?? 0.05);
+$NIGHT_THR   = floatval($GLOBALS['PVDASH_PV_NIGHT_THRESHOLD_KW'] ?? 0.05);
 
-$currDayByTs = date('Y-m-d', $ts);
-$mins_since_midnight_ts = ($ts - strtotime($currDayByTs.' 00:00:00')) / 60.0;
-$prevDay = $prevRow ? date('Y-m-d', intval($prevRow['ts'])) : null;
+$pv_prev = ($prevRow && $prevRow['pv_total_kwh'] !== null) ? floatval($prevRow['pv_total_kwh']) : null;
+$pv_now  = ($vals['pv_total_kwh'] !== null) ? floatval($vals['pv_total_kwh']) : null;
 
-$anchors = [
+$pv_drop  = ($pv_prev !== null && $pv_now !== null && ($pv_now + $PV_DROP_EPS) < $pv_prev);
+$pv_night = as_kW(floatval($vals['pv_power'] ?? 0), $unit) <= $NIGHT_THR;
+$ts_day_changed = ($prevRow ? (date('Y-m-d', intval($prevRow['ts'])) !== date('Y-m-d', $ts)) : false);
+
+$ROLL_BY_PV = $pv_drop && ($pv_night || $ts_day_changed);
+
+/* -----------------------------------------------------------
+ * Optional: Legacy-Reset für andere Zähler wie zuvor
+ * (Anker <= EPS) – NICHT für PV forciert.
+ * ---------------------------------------------------------*/
+$RESET_EPS_KWH = floatval($GLOBALS['PVDASH_RESET_EPS_KWH'] ?? 0.5);
+$anchors_other = [
   'consumption_total_kwh',
-  'pv_total_kwh',
+  // 'pv_total_kwh',  // PV wird separat behandelt
   'grid_import_total_kwh',
   'feed_in_total_kwh',
   'batt_in_total_kwh',
   'batt_out_total_kwh',
 ];
-
-$rollByDrop = false;
-$dropAnchor = null;
-if ($prevRow) {
-  foreach ($anchors as $ak) {
-    $now  = $vals[$ak] ?? null;
-    $prev = ($prevRow[$ak] !== null) ? floatval($prevRow[$ak]) : null;
-    if ($now !== null && $prev !== null) {
-      if ($now + $MONO_EPS < $prev) {
-        if ($prevDay !== $currDayByTs || $mins_since_midnight_ts <= $ROLL_GUARD_MIN) {
-          $rollByDrop = true; $dropAnchor = $ak; break;
-        }
-      }
-    }
-  }
-}
-$GLOBALS['PVDASH_ROLL_BY_DROP'] = $rollByDrop;
-$GLOBALS['PVDASH_ROLL_ANCHOR']  = $dropAnchor;
-
-/* -----------------------------------------------------------
- * Legacy-Reset (<=EPS) als Backstop (falls kein Drop erkannt)
- * ---------------------------------------------------------*/
-$RESET_EPS_KWH = floatval($GLOBALS['PVDASH_RESET_EPS_KWH'] ?? 0.5);
 $resetDetectedLegacy = false;
-if ($prevRow && !$rollByDrop) {
-  foreach ($anchors as $ak) {
+if ($prevRow && !$ROLL_BY_PV) {
+  foreach ($anchors_other as $ak) {
     $now  = $vals[$ak] ?? null;
     $prev = ($prevRow[$ak] !== null) ? floatval($prevRow[$ak]) : null;
     if ($now !== null && $prev !== null) {
@@ -123,12 +114,61 @@ if ($prevRow && !$rollByDrop) {
     }
   }
 }
-$resetDetected = $rollByDrop || $resetDetectedLegacy;
 
 /* -----------------------------------------------------------
- * Wenn Tageswechsel erkannt: Vortag mit Totals des letzten Samples fixieren
+ * Wenn PV-Roll: Vortag fixieren (mit prevRow Totals) + PV-Start heute merken
+ * Wenn Legacy-Reset (nicht PV): Vortag wie gehabt fixieren
  * ---------------------------------------------------------*/
-if ($resetDetected && $prevRow) {
+$did_fix_prevday = false;
+$pv_today_start = null;
+
+if ($ROLL_BY_PV && $prevRow) {
+  $yesterday = date('Y-m-d', intval($prevRow['ts']));
+  // Vortag laden
+  $selDayPrev = $pdo->prepare('SELECT pv_kwh,feed_in_kwh,batt_in_kwh,batt_out_kwh,consumption_kwh,grid_import_kwh
+                               FROM daily_totals WHERE device=? AND day=?');
+  $selDayPrev->execute([$device,$yesterday]);
+  $had = $selDayPrev->fetch(PDO::FETCH_ASSOC);
+
+  // Finalwerte aus prevRow
+  $final = [
+    'pv'   => floatval($prevRow['pv_total_kwh']          ?? 0.0),
+    'fi'   => floatval($prevRow['feed_in_total_kwh']     ?? 0.0),
+    'bi'   => floatval($prevRow['batt_in_total_kwh']     ?? 0.0),
+    'bo'   => floatval($prevRow['batt_out_total_kwh']    ?? 0.0),
+    'cons' => floatval($prevRow['consumption_total_kwh'] ?? 0.0),
+    'imp'  => floatval($prevRow['grid_import_total_kwh'] ?? 0.0),
+  ];
+
+  // nie absenken
+  $merged = [
+    'pv'   => max(floatval($had['pv_kwh']           ?? 0.0), $final['pv']),
+    'fi'   => max(floatval($had['feed_in_kwh']      ?? 0.0), $final['fi']),
+    'bi'   => max(floatval($had['batt_in_kwh']      ?? 0.0), $final['bi']),
+    'bo'   => max(floatval($had['batt_out_kwh']     ?? 0.0), $final['bo']),
+    'cons' => max(floatval($had['consumption_kwh']  ?? 0.0), $final['cons']),
+    'imp'  => max(floatval($had['grid_import_kwh']  ?? 0.0), $final['imp']),
+  ];
+
+  $upPrev = $pdo->prepare('INSERT INTO daily_totals (device,day,pv_kwh,feed_in_kwh,batt_in_kwh,batt_out_kwh,consumption_kwh,grid_import_kwh,created_ts,updated_ts)
+                           VALUES (?,?,?,?,?,?,?,?,?,?)
+                           ON CONFLICT(device,day) DO UPDATE SET
+                             pv_kwh=excluded.pv_kwh,
+                             feed_in_kwh=excluded.feed_in_kwh,
+                             batt_in_kwh=excluded.batt_in_kwh,
+                             batt_out_kwh=excluded.batt_out_kwh,
+                             consumption_kwh=excluded.consumption_kwh,
+                             grid_import_kwh=excluded.grid_import_kwh,
+                             updated_ts=excluded.updated_ts');
+  $nowts = time();
+  $upPrev->execute([$device,$yesterday,$merged['pv'],$merged['fi'],$merged['bi'],$merged['bo'],$merged['cons'],$merged['imp'],$nowts,$nowts]);
+  $did_fix_prevday = true;
+
+  // HEUTE: Startwert PV vormerken – nachts hart 0
+  $pv_today_start = $pv_night ? 0.0 : max(0.0, $pv_now);
+}
+elseif ($resetDetectedLegacy && $prevRow) {
+  // Legacy-Fix (für NICHT-PV-Werte) unverändert
   $yesterday = date('Y-m-d', intval($prevRow['ts']));
   $selDayPrev = $pdo->prepare('SELECT pv_kwh,feed_in_kwh,batt_in_kwh,batt_out_kwh,consumption_kwh,grid_import_kwh
                                FROM daily_totals WHERE device=? AND day=?');
@@ -165,10 +205,11 @@ if ($resetDetected && $prevRow) {
                              updated_ts=excluded.updated_ts');
   $nowts = time();
   $upPrev->execute([$device,$yesterday,$merged['pv'],$merged['fi'],$merged['bi'],$merged['bo'],$merged['cons'],$merged['imp'],$nowts,$nowts]);
+  $did_fix_prevday = true;
 }
 
 /* -----------------------------------------------------------
- * Raw-Sample jetzt persistieren
+ * Raw-Sample jetzt persistieren (nach Reset-Check)
  * ---------------------------------------------------------*/
 $ins = $pdo->prepare('INSERT INTO samples (device, ts, unit, pv_power, battery_charge, battery_discharge, feed_in, consumption, grid_import, battery_soc, pv_total_kwh, feed_in_total_kwh, batt_in_total_kwh, batt_out_total_kwh, consumption_total_kwh, grid_import_total_kwh)
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
@@ -207,57 +248,39 @@ $stateSel->execute([$device]);
 $state = $stateSel->fetch(PDO::FETCH_ASSOC);
 
 /* -----------------------------------------------------------
- * apply_metric – nutzt State/letztes Sample/Drop-Flag
- * Roll-Logik:
- *  - Bei roll_by_drop: NUR der gedroppte Zähler wird als Start übernommen.
- *    Für PV zusätzlich "Nacht-Clamp": ist Nacht → Start = 0.
- *  - Alle anderen Zähler am neuen Tag fallen auf trust/eps-Regeln zurück.
+ * apply_metric – wie zuvor, mit kleinem PV-Spezial-Handling
  * ---------------------------------------------------------*/
 function apply_metric(&$T,&$prevAdds,$key,$total_key,$last_key,$now_val_raw,$unit,$state,$ts){
-  $todayLocal = date('Y-m-d'); // Servertag
+  // Servertag
+  $todayLocal = date('Y-m-d');
 
-  $trust_midnight   = !empty($GLOBALS['PVDASH_TRUST_MIDNIGHT_RESETS']);
-  $EARLY_FIX_MIN    = intval($GLOBALS['PVDASH_EARLY_FIX_MIN'] ?? 30);
-  $RESET_EPS_KWH    = floatval($GLOBALS['PVDASH_RESET_EPS_KWH'] ?? 0.5);
+  $trust_midnight = !empty($GLOBALS['PVDASH_TRUST_MIDNIGHT_RESETS']);
+  $EARLY_FIX_MIN  = intval($GLOBALS['PVDASH_EARLY_FIX_MIN'] ?? 30);
+  $RESET_EPS_KWH  = floatval($GLOBALS['PVDASH_RESET_EPS_KWH'] ?? 0.5);
 
+  // gleicher/neuer Tag via integ_state
   $rolled_state = $state && !empty($state['last_ts']) && date('Y-m-d', intval($state['last_ts'])) !== $todayLocal;
-  $prev_ts      = $GLOBALS['PVDASH_PREV_TS'] ?? null;
-  $rolled_prev  = $prev_ts ? (date('Y-m-d', intval($prev_ts)) !== $todayLocal) : false;
-  $rolled_drop  = !empty($GLOBALS['PVDASH_ROLL_BY_DROP']);
-  $drop_anchor  = $GLOBALS['PVDASH_ROLL_ANCHOR'] ?? null;
-  $rolled       = $rolled_state || $rolled_prev || $rolled_drop;
-
   $mins_since_midnight = (time() - strtotime($todayLocal.' 00:00:00')) / 60.0;
 
-  // Tages-Total aus Payload?
+  // PV: Falls wir heute explizit einen Startwert gesetzt haben, zunächst anwenden
+  if ($key === 'pv' && ($GLOBALS['pv_today_start_applied'] ?? false) === false && $GLOBALS['pv_today_start'] !== null) {
+    $T['pv'] = floatval($GLOBALS['pv_today_start']);
+    $GLOBALS['pv_today_start_applied'] = true;
+  }
+
+  // Totals aus Payload zuerst
   $total = $total_key ? ($GLOBALS['vals'][$total_key] ?? null) : null;
   if ($total !== null) {
     $accepted = floatval($total);
 
-    if ($rolled) {
-      // Fall A: Roll kam durch Monotonie-Drop
-      if ($rolled_drop) {
-        $is_anchor = ($total_key === $drop_anchor);
-        if ($is_anchor) {
-          // Nur der gedroppte Zähler übernimmt den Start-Wert
-          if ($total_key === 'pv_total_kwh') {
-            // PV-Spezial: Wenn Nacht (Leistung ~0), hart auf 0 starten
-            $night_thr = floatval($GLOBALS['PVDASH_PV_NIGHT_THRESHOLD_KW'] ?? 0.05);
-            $now_kw = as_kW(floatval($now_val_raw ?? 0), $unit);
-            if ($now_kw <= $night_thr) { $T[$key] = 0.0; return; }
-          }
-          $T[$key] = $accepted; 
-          return;
-        }
-        // Nicht-Anker: fällt zurück auf trust/eps-Regeln unten
-      }
-
-      // Fall B: Roll NICHT über Drop (Legacy / Reset ≤ EPS / State-Roll)
-      if ($trust_midnight) { $T[$key] = $accepted; return; }
-      if ($accepted <= $RESET_EPS_KWH) { $T[$key] = $accepted; return; }
-      // sonst ignorieren → unten Leistung integrieren
+    if ($rolled_state) {
+      if ($trust_midnight || $accepted <= $RESET_EPS_KWH) { $T[$key] = $accepted; return; }
+      // sonst ignorieren → unten integrieren
     } else {
-      // gleicher Tag → max oder frühe Korrektur (nur trust=true)
+      // PV nach gesetztem Start nur nach oben wachsen lassen
+      if ($key === 'pv' && ($GLOBALS['pv_today_start_applied'] ?? false)) {
+        $T[$key] = max($T[$key], $accepted); return;
+      }
       if ($trust_midnight && $mins_since_midnight <= $EARLY_FIX_MIN && $accepted < $T[$key]) {
         $T[$key] = $accepted; return;
       }
@@ -265,7 +288,7 @@ function apply_metric(&$T,&$prevAdds,$key,$total_key,$last_key,$now_val_raw,$uni
     }
   }
 
-  // Integration aus Leistung (kW) zwischen last_ts und ts
+  // Integration aus Leistung (kW)
   if (!$state || empty($state['last_ts'])) return;
   $t0 = intval($state['last_ts']); $t1 = intval($ts); if ($t1 <= $t0) return;
 
@@ -276,9 +299,14 @@ function apply_metric(&$T,&$prevAdds,$key,$total_key,$last_key,$now_val_raw,$uni
   $parts = split_interval($t0,$v0,$t1,$v1);
   foreach ($parts as $day=>$kwh){
     if ($day === $todayLocal) $T[$key] += $kwh;
-    else $prevAdds[$key] += $kwh;
+    else $prevAdds[$key] += $kwh; // Vortag gutschreiben
   }
 }
+
+/* -----------------------------------------------------------
+ * PV-Startwert an apply_metric signalisieren
+ * ---------------------------------------------------------*/
+$GLOBALS['pv_today_start'] = $pv_today_start;
 
 /* -----------------------------------------------------------
  * Feed-in robust ableiten (falls kein feed_in geliefert)
@@ -289,7 +317,7 @@ if ($fi_now === null && $vals['grid_import'] !== null) {
 }
 
 /* -----------------------------------------------------------
- * Integration/Update je Metrik
+ * Integration/Update je Metrik (andere bleiben wie zuvor)
  * ---------------------------------------------------------*/
 $prevAdds = ['pv'=>0,'fi'=>0,'bi'=>0,'bo'=>0,'cons'=>0,'imp'=>0];
 
