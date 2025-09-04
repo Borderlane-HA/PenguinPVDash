@@ -82,12 +82,13 @@ Unter *Einrichten/Optionen* stehen diese Felder zur Verfügung:
 
 **Server UI:**
 
-<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot1a.png"/><br>
+<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screen1.png"/><br>
+<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screen2.png"/><br>
 
 **Integration (HA):**
 
-<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screen1.png" width="425"/><br>
-<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screen2.png" width="425"/><br>
+<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2a.png" width="425"/><br>
+<img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2b.png" width="425"/><br>
 <img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2c.png" width="425"/><br>
 <img src="https://github.com/Borderlane-HA/PenguinPVDash/blob/main/SCREENSHOTS/Screenshot2c.png" width="425"/><br> 
 
