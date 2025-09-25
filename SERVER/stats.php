@@ -156,6 +156,18 @@ const isNum = (v)=> Number.isFinite(v);
 const n2 = (v)=> (Math.round((v||0)*100)/100);
 const nz = (v)=> (isNum(v) ? v : 0);
 
+/* ==== Brutto-Helfer ==== */
+/* Bruttoverbrauch (Hauslast) = (PV - Einspeisung - Batt IN) + Batt OUT + Netzbezug */
+function computeGross(it){
+  const pv   = parseFloat(it.pv_kwh);
+  const exp  = parseFloat(it.feed_in_kwh);
+  const bin  = parseFloat(it.batt_in_kwh);
+  const bout = parseFloat(it.batt_out_kwh);
+  const imp  = parseFloat(it.grid_import_kwh);
+  const v = nz(pv) - nz(exp) - nz(bin) + nz(bout) + nz(imp);
+  return v;
+}
+
 /* ==== Tabelle + Summen + Tagesmittel ==== */
 function buildRowsAndSummary(items){
   tb.innerHTML=''; if(tf) tf.innerHTML='';
@@ -167,9 +179,7 @@ function buildRowsAndSummary(items){
   items.forEach(it=>{
     if(it.day===today) return;
     COLS.forEach(k=>{
-      const v = (k==='gross_kwh')
-        ? ( nz(parseFloat(it.pv_kwh)) - nz(parseFloat(it.feed_in_kwh)) + nz(parseFloat(it.batt_out_kwh)) - nz(parseFloat(it.batt_in_kwh)) )
-        : parseFloat(it[k]);
+      const v = (k==='gross_kwh') ? computeGross(it) : parseFloat(it[k]);
       if(isNum(v)) series[k].push(v);
     });
   });
@@ -184,9 +194,7 @@ function buildRowsAndSummary(items){
     const d=document.createElement('td'); d.textContent=it.day; tr.appendChild(d);
     COLS.forEach(k=>{
       const td=document.createElement('td');
-      const raw = (k==='gross_kwh')
-        ? ( nz(parseFloat(it.pv_kwh)) - nz(parseFloat(it.feed_in_kwh)) + nz(parseFloat(it.batt_out_kwh)) - nz(parseFloat(it.batt_in_kwh)) )
-        : parseFloat(it[k]);
+      const raw = (k==='gross_kwh') ? computeGross(it) : parseFloat(it[k]);
       if(!isNum(raw)) td.textContent='–';
       else{
         td.textContent=n2(raw).toLocaleString('de-DE');
@@ -203,9 +211,7 @@ function buildRowsAndSummary(items){
 
   // Summen + Tagesmittel (inkl. heute in Summe; Mittel über Anzahl vorhandener Tage)
   const sums={}; COLS.forEach(k=>{ let s=0; items.forEach(it=>{
-    const v = (k==='gross_kwh')
-      ? ( nz(parseFloat(it.pv_kwh)) - nz(parseFloat(it.feed_in_kwh)) + nz(parseFloat(it.batt_out_kwh)) - nz(parseFloat(it.batt_in_kwh)) )
-      : parseFloat(it[k]);
+    const v = (k==='gross_kwh') ? computeGross(it) : parseFloat(it[k]);
     if(isNum(v)) s+=v;
   }); sums[k]=s; });
 
@@ -251,17 +257,13 @@ function renderChart(items){
 
   function arrOf(key){
     return items.map(it=>{
+      let v;
       if(key==='gross_kwh'){
-        const pv=nz(parseFloat(it.pv_kwh));
-        const ex=nz(parseFloat(it.feed_in_kwh));
-        const bo=nz(parseFloat(it.batt_out_kwh));
-        const bi=nz(parseFloat(it.batt_in_kwh));
-        const v = pv - ex + bo - bi;
-        return isNum(v) ? +n2(v) : null;
-      }else{
-        const v = parseFloat(it[key]);
-        return isNum(v) ? +n2(v) : null;
+        v = computeGross(it);
+      } else {
+        v = parseFloat(it[key]);
       }
+      return isNum(v) ? +n2(v) : null;
     });
   }
 
@@ -347,7 +349,7 @@ document.getElementById('apply').addEventListener('click',()=>{
 
 /* Reveal via Server-Check (geschützte €-Anzeige) */
 async function verifyVerguetungCode() {
-  const code = prompt('Code:');       // (Optional: maskierten Dialog kann ich dir bereitstellen)
+  const code = prompt('Code:');
   if (code == null) return false;
   try {
     const r = await fetch('api/verify_verguetung.php', {
