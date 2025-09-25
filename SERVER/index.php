@@ -338,7 +338,7 @@ async function refreshLive(){
     const p = Math.max(0, Math.min(100, isFinite(soc)?soc:0));
     fill.style.width = p+'%';
     bat.classList.remove('low','mid');
-    if(p<30) bat.classList.add('low'); else if(p<60) bat.class.add('mid'); // <- fixed below
+    if(p<30) bat.classList.add('low'); else if (p < 60) bat.classList.add('mid'); // <- fixed below
   }
 
   // **Fix**: classList add mid korrekt
