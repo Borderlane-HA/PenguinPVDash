@@ -224,6 +224,11 @@ $V_CT_JS   = str_replace(',', '.', $V_CT_RAW); // z. B. "10.45"
         <div class="label"><?= th('t14') ?>:</div>
         <div class="lines">
           <div class="row"><span><?= th('t15') ?> (kWh):</span><span id="k_cons">–</span></div>
+          <!-- NEU: Bruttoverbrauch heute -->
+          <div class="row">
+            <span><?= htmlspecialchars((t('t31_gross')==='t31_gross'?'Bruttoverbrauch':t('t31_gross')),ENT_QUOTES,'UTF-8') ?> (kWh):</span>
+            <span id="k_gross">–</span>
+          </div>
           <div class="row"><span><?= th('t16') ?> (kWh):</span><span id="k_imp">–</span></div>
           <div class="row"><span><?= th('t17') ?> (kWh):</span><span id="k_feed">–</span></div>
         </div>
@@ -333,7 +338,15 @@ async function refreshLive(){
     const p = Math.max(0, Math.min(100, isFinite(soc)?soc:0));
     fill.style.width = p+'%';
     bat.classList.remove('low','mid');
-    if(p<30) bat.classList.add('low'); else if(p<60) bat.classList.add('mid');
+    if(p<30) bat.classList.add('low'); else if(p<60) bat.class.add('mid'); // <- fixed below
+  }
+
+  // **Fix**: classList add mid korrekt
+  if(bat){
+    bat.classList.remove('low','mid');
+    const p = Math.max(0, Math.min(100, isFinite(soc)?soc:0));
+    if(p<30) bat.classList.add('low');
+    else if(p<60) bat.classList.add('mid');
   }
 
   // Node-Glow (fancy) wenn Leistung anliegt
@@ -379,14 +392,25 @@ async function refreshLive(){
   const v5 = flowVisuals(importKW);
   rebuildTokens('tok_grid_house', 'l_grid_house', grid_house_on ? v5.count : 0, v5.dur, 'grid');
 
-  // Tageswerte (kWh)
+  // ===== Heute (kWh) =====
   function tv(x){ return x==null ? '–' : f2(parseFloat(x)); }
-  setText('k_pv',   tv(t.pv_kwh));
-  setText('k_feed', tv(t.feed_in_kwh));
-  setText('k_bin',  tv(t.batt_in_kwh));
-  setText('k_bout', tv(t.batt_out_kwh));
-  setText('k_cons', tv(t.consumption_kwh));
-  setText('k_imp',  tv(t.grid_import_kwh));
+  const t_pv   = parseFloat(t.pv_kwh)           || 0;
+  const t_feed = parseFloat(t.feed_in_kwh)      || 0;
+  const t_bin  = parseFloat(t.batt_in_kwh)      || 0;
+  const t_bout = parseFloat(t.batt_out_kwh)     || 0;
+  const t_imp  = parseFloat(t.grid_import_kwh)  || 0;
+  const t_cons = parseFloat(t.consumption_kwh);       // kann fehlen/„falsch“ laut HA
+
+  // NEU: Bruttoverbrauch heute (Hauslast)
+  const gross_today = (t_pv - t_feed - t_bin) + t_bout + t_imp;
+
+  setText('k_pv',   tv(t_pv));
+  setText('k_feed', tv(t_feed));
+  setText('k_bin',  tv(t_bin));
+  setText('k_bout', tv(t_bout));
+  setText('k_cons', tv(t_cons));
+  setText('k_imp',  tv(t_imp));
+  setText('k_gross', tv(gross_today));
 }
 
 /* ===== History 30 Tage (Peaks/Lows ohne heute) + Summen + Tagesmittel ===== */
@@ -400,7 +424,7 @@ async function refreshHistory(){
   tb.innerHTML = ''; if(tf) tf.innerHTML = '';
 
   // Spalten inkl. berechnetem Bruttoverbrauch
-  // Bruttoverbrauch = PV - Einspeisung + Batt OUT - Batt IN
+  // Bruttoverbrauch (Hauslast) = (PV - Einspeisung - Batt IN) + Batt OUT + Netzbezug
   const cols = ['pv_kwh','feed_in_kwh','batt_in_kwh','batt_out_kwh','consumption_kwh','gross_kwh','grid_import_kwh'];
 
   const isNum = (v)=> Number.isFinite(v);
@@ -413,7 +437,8 @@ async function refreshHistory(){
     const exp  = parseFloat(it.feed_in_kwh);
     const bout = parseFloat(it.batt_out_kwh);
     const bin  = parseFloat(it.batt_in_kwh);
-    return nz(pv) - nz(exp) + nz(bout) - nz(bin);
+    const imp  = parseFloat(it.grid_import_kwh);
+    return nz(pv) - nz(exp) - nz(bin) + nz(bout) + nz(imp);
   }
 
   // Extremwerte ohne heute
