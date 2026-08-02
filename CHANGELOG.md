@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.7.0
+
+- Removed the obsolete “More / Open statistics” card from the main dashboard.
+- Added one shared, consistently ordered navigation bar across dashboard, data management, statistics and settings.
+- Renamed “Daily totals” to “Manage data”.
+- Replaced the free-text device field in statistics with a dropdown of known device IDs.
+- Added a SQLite device-data manager with default-device selection, device-data rename, optional target replacement and device-data deletion.
+- Added an import option that renames a single imported device ID to the current default device.
+- Added a list of automatic SQLite backups with download, restore and delete actions.
+- Added configurable backup retention from 1 to 25 files.
+- Added persistent custom logo and dashboard title settings.
+- Added standard, dark and light themes, a configurable accent color and compact/comfortable table density.
+- Added separately configurable minimum and maximum highlight colors for every energy column.
+- Modernized cards, forms, tables, navigation and responsive layouts.
+
 ## 1.6.3
 
 - Added an administrator settings page for device IDs and Home Assistant API keys.

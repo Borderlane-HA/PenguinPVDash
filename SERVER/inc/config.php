@@ -18,6 +18,23 @@ $PVDASH_CONFIG = [
     'feed_in_ct' => 0.0,
     'default_device' => '',
 
+    // Appearance and branding.
+    'site_title' => 'PenguinPVDash',
+    'theme' => 'standard',
+    'accent_color' => '#4e8cff',
+    'table_density' => 'comfortable',
+    'highlight_extremes' => true,
+    'metric_colors' => [
+        'pv_kwh' => ['min' => '#8fb8ff', 'max' => '#39d98a'],
+        'feed_in_kwh' => ['min' => '#91c9ff', 'max' => '#22d3ee'],
+        'batt_in_kwh' => ['min' => '#ffe0a3', 'max' => '#f59e0b'],
+        'batt_out_kwh' => ['min' => '#ffc2cf', 'max' => '#fb7185'],
+        'consumption_kwh' => ['min' => '#b7caff', 'max' => '#5a8cff'],
+        'grid_import_kwh' => ['min' => '#ffd0a1', 'max' => '#f4a84a'],
+    ],
+    'custom_logo_file' => '',
+    'backup_retention' => 5,
+
     // Web access. An empty guest password means public read-only access.
     'admin_password' => '',
     'guest_password' => '',

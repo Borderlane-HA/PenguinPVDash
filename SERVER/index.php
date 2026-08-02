@@ -2,8 +2,8 @@
 declare(strict_types=1);
 require_once __DIR__ . '/inc/web_auth.php';
 require_once __DIR__ . '/inc/i18n.php';
+require_once __DIR__ . '/inc/ui.php';
 pvdash_require_view();
-$canViewStats = pvdash_can_view_stats();
 $canViewCompensation = pvdash_can_view_compensation();
 $feedInCt = $canViewCompensation ? (float) pvdash_config('feed_in_ct', 0.0) : 0.0;
 $role = pvdash_role();
@@ -14,7 +14,7 @@ $defaultDevice = pvdash_default_device();
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>PenguinPVDash</title>
+  <title><?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="assets/style.css"/>
   <style>
     /* Grundlayout der Knoten/Icons */
@@ -105,25 +105,11 @@ $defaultDevice = pvdash_default_device();
     .reveal-link{ display:inline-block; margin-top:6px; font-size:.9em; opacity:.85; text-decoration:underline; cursor:pointer; }
   </style>
 </head>
-<body>
+<body <?= pvdash_body_attributes() ?>>
 <div class="wrap">
   <header class="topbar">
-    <div class="brand-title">
-      <img class="brand-icon" src="assets/penguin-pv-icon.png" alt="" width="42" height="42">
-      <h1>PenguinPVDash</h1>
-      <span class="status-pill <?= pvdash_is_admin() ? 'status-manual' : 'status-auto' ?>"><?= pvdash_is_admin() ? th('role_admin') : th('role_guest') ?></span>
-    </div>
-    <nav class="top-actions">
-      <?php if ($canViewStats): ?><a class="button" href="stats.php"><?= th('nav_stats') ?></a><?php endif; ?>
-      <?php if (pvdash_is_admin()): ?>
-        <a class="button button-primary" href="admin/"><?= th('nav_admin') ?></a>
-        <a class="button" href="admin/settings.php"><?= th('nav_settings') ?></a>
-        <a class="button" href="logout.php"><?= th('nav_logout') ?></a>
-      <?php else: ?>
-        <a class="button" href="login.php?admin=1&next=./"><?= th('nav_admin_login') ?></a>
-        <?php if (pvdash_session_role() === 'guest'): ?><a class="button" href="logout.php"><?= th('nav_logout') ?></a><?php endif; ?>
-      <?php endif; ?>
-    </nav>
+    <?php pvdash_render_brand_heading(pvdash_site_title()); ?>
+    <?php pvdash_render_navigation('dashboard'); ?>
   </header>
 
   <!-- ====== Flow (mit animierten Kreisen) ====== -->
@@ -256,12 +242,6 @@ $defaultDevice = pvdash_default_device();
     </div>
   </div>
 
-  <?php if ($canViewStats): ?>
-  <div class="card">
-    <div class="card-head"><h2><?= th('t26') ?>…</h2></div>
-    <p><?= th('t27') ?>: <a href="stats.php"><?= th('t28') ?></a></p>
-  </div>
-  <?php endif; ?>
 </div>
 
 <script>
@@ -271,6 +251,8 @@ const FEEDIN_EUR_PER_KWH = isFinite(FEEDIN_CT) ? (FEEDIN_CT/100) : 0;
 const CAN_VIEW_COMPENSATION = <?= $canViewCompensation ? 'true' : 'false' ?>;
 const DEFAULT_DEVICE = <?= json_encode($defaultDevice, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 const NUMBER_LOCALE = <?= json_encode(APP_LANG === 'de' ? 'de-DE' : 'en-US') ?>;
+const HIGHLIGHT_EXTREMES = <?= (bool) pvdash_config('highlight_extremes', true) ? 'true' : 'false' ?>;
+const METRIC_COLORS = <?= json_encode(pvdash_metric_colors(), JSON_UNESCAPED_SLASHES) ?>;
 
 /* ===== Helpers ===== */
 function f2(v){ return (Math.round((v||0)*100)/100).toLocaleString(NUMBER_LOCALE); }
@@ -450,8 +432,8 @@ async function refreshHistory(){
         c.textContent = n2(raw).toLocaleString(NUMBER_LOCALE);
         if(it.day !== today){
           const ex = extremes[k];
-          if(ex.max!==null && raw===ex.max) c.classList.add('peak');
-          if(ex.min!==null && raw===ex.min) c.classList.add('low');
+          if(HIGHLIGHT_EXTREMES && ex.max!==null && raw===ex.max){ c.classList.add('peak'); c.style.setProperty('--cell-color', METRIC_COLORS[k]?.max || '#39d98a'); }
+          if(HIGHLIGHT_EXTREMES && ex.min!==null && raw===ex.min){ c.classList.add('low'); c.style.setProperty('--cell-color', METRIC_COLORS[k]?.min || '#8fb8ff'); }
         }
       }
       tr.appendChild(c);

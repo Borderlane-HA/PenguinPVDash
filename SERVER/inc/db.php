@@ -265,7 +265,8 @@ function pvdash_database_import_max_bytes(): int
 function pvdash_database_backup_retention(): int
 {
     global $PVDASH_DATABASE_BACKUP_RETENTION;
-    return max(1, (int) ($PVDASH_DATABASE_BACKUP_RETENTION ?? 5));
+    $configured = (int) pvdash_config('backup_retention', (int) ($PVDASH_DATABASE_BACKUP_RETENTION ?? 5));
+    return max(1, min(25, $configured));
 }
 
 function pvdash_prune_database_backups(string $directory): void
@@ -308,4 +309,250 @@ function pvdash_devices(PDO $pdo): array
     $devices = array_values(array_unique(array_filter($devices, static fn ($v) => $v !== '')));
     sort($devices, SORT_NATURAL | SORT_FLAG_CASE);
     return $devices ?: ['home'];
+}
+
+
+function pvdash_database_backup_files(): array
+{
+    $directory = dirname(pvdash_database_path());
+    $files = glob($directory . '/pvdash-before-import-*.sqlite') ?: [];
+    usort($files, static fn (string $a, string $b): int => (filemtime($b) ?: 0) <=> (filemtime($a) ?: 0));
+
+    return array_map(static function (string $path): array {
+        return [
+            'name' => basename($path),
+            'path' => $path,
+            'size' => (int) (filesize($path) ?: 0),
+            'mtime' => (int) (filemtime($path) ?: 0),
+        ];
+    }, $files);
+}
+
+function pvdash_database_backup_path(string $filename): string
+{
+    $filename = basename($filename);
+    if (preg_match('/^pvdash-before-import-[A-Za-z0-9-]+\.sqlite$/', $filename) !== 1) {
+        throw new InvalidArgumentException('Invalid backup filename.');
+    }
+    $path = dirname(pvdash_database_path()) . DIRECTORY_SEPARATOR . $filename;
+    if (!is_file($path)) {
+        throw new RuntimeException('The selected backup no longer exists.');
+    }
+    return $path;
+}
+
+function pvdash_device_data_exists(PDO $pdo, string $device): bool
+{
+    foreach (['samples', 'daily_totals', 'integ_state'] as $table) {
+        $stmt = $pdo->prepare('SELECT 1 FROM ' . $table . ' WHERE device=? LIMIT 1');
+        $stmt->execute([$device]);
+        if ($stmt->fetchColumn() !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function pvdash_delete_device_data(PDO $pdo, string $device): void
+{
+    $pdo->beginTransaction();
+    try {
+        foreach (['samples', 'daily_totals', 'integ_state'] as $table) {
+            $stmt = $pdo->prepare('DELETE FROM ' . $table . ' WHERE device=?');
+            $stmt->execute([$device]);
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
+function pvdash_rename_device_data(PDO $pdo, string $from, string $to, bool $replaceTarget = false): void
+{
+    if ($from === $to) {
+        return;
+    }
+    if (!pvdash_valid_device_id($from) || !pvdash_valid_device_id($to)) {
+        throw new InvalidArgumentException('Invalid device ID.');
+    }
+    if (!pvdash_device_data_exists($pdo, $from)) {
+        throw new RuntimeException('The source device does not contain data.');
+    }
+    if (!$replaceTarget && pvdash_device_data_exists($pdo, $to)) {
+        throw new RuntimeException(t('settings_device_target_exists', ['device' => $to]));
+    }
+
+    $pdo->beginTransaction();
+    try {
+        if ($replaceTarget) {
+            foreach (['samples', 'daily_totals', 'integ_state'] as $table) {
+                $stmt = $pdo->prepare('DELETE FROM ' . $table . ' WHERE device=?');
+                $stmt->execute([$to]);
+            }
+        }
+        foreach (['samples', 'daily_totals', 'integ_state'] as $table) {
+            $stmt = $pdo->prepare('UPDATE ' . $table . ' SET device=? WHERE device=?');
+            $stmt->execute([$to, $from]);
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
+function pvdash_device_summaries(PDO $pdo): array
+{
+    $result = [];
+    foreach (array_keys((array) pvdash_config('api_keys', [])) as $device) {
+        $result[(string) $device] = [
+            'device' => (string) $device,
+            'samples' => 0,
+            'daily' => 0,
+            'first_ts' => null,
+            'last_ts' => null,
+            'first_day' => null,
+            'last_day' => null,
+            'has_api_key' => true,
+        ];
+    }
+
+    foreach ($pdo->query('SELECT device, COUNT(*) AS count, MIN(ts) AS first_ts, MAX(ts) AS last_ts FROM samples GROUP BY device') as $row) {
+        $device = (string) $row['device'];
+        $result[$device] ??= [
+            'device' => $device,
+            'samples' => 0,
+            'daily' => 0,
+            'first_ts' => null,
+            'last_ts' => null,
+            'first_day' => null,
+            'last_day' => null,
+            'has_api_key' => false,
+        ];
+        $result[$device]['samples'] = (int) $row['count'];
+        $result[$device]['first_ts'] = $row['first_ts'] !== null ? (int) $row['first_ts'] : null;
+        $result[$device]['last_ts'] = $row['last_ts'] !== null ? (int) $row['last_ts'] : null;
+    }
+
+    foreach ($pdo->query('SELECT device, COUNT(*) AS count, MIN(day) AS first_day, MAX(day) AS last_day FROM daily_totals GROUP BY device') as $row) {
+        $device = (string) $row['device'];
+        $result[$device] ??= [
+            'device' => $device,
+            'samples' => 0,
+            'daily' => 0,
+            'first_ts' => null,
+            'last_ts' => null,
+            'first_day' => null,
+            'last_day' => null,
+            'has_api_key' => false,
+        ];
+        $result[$device]['daily'] = (int) $row['count'];
+        $result[$device]['first_day'] = $row['first_day'] !== null ? (string) $row['first_day'] : null;
+        $result[$device]['last_day'] = $row['last_day'] !== null ? (string) $row['last_day'] : null;
+    }
+
+    ksort($result, SORT_NATURAL | SORT_FLAG_CASE);
+    return array_values($result);
+}
+
+/**
+ * Replace the active database with a validated SQLite file and keep a backup
+ * of the previous active database. The caller must not have opened db() in the
+ * same request because this operation needs the exclusive maintenance lock.
+ */
+function pvdash_replace_database_from_file(string $sourcePath): string
+{
+    pvdash_validate_database_file($sourcePath);
+
+    $targetPath = pvdash_database_path();
+    pvdash_ensure_database_directory($targetPath);
+    $directory = dirname($targetPath);
+    $token = bin2hex(random_bytes(8));
+    $newPath = $directory . '/.pvdash-import-' . $token . '.sqlite';
+    $oldPath = $directory . '/.pvdash-replaced-' . $token . '.sqlite';
+    $lockHandle = null;
+    $backupName = '';
+
+    try {
+        $lockHandle = pvdash_acquire_database_lock(LOCK_EX);
+        if (!copy($sourcePath, $newPath)) {
+            throw new RuntimeException(t('database_error_copy'));
+        }
+        @chmod($newPath, 0660);
+
+        $newPdo = pvdash_open_database($newPath, true);
+        pvdash_checkpoint_database($newPdo);
+        $newPdo = null;
+        @unlink($newPath . '-wal');
+        @unlink($newPath . '-shm');
+        pvdash_validate_database_file($newPath);
+
+        if (is_file($targetPath)) {
+            $backupName = 'pvdash-before-import-' . date('Ymd-His') . '-' . substr($token, 0, 6) . '.sqlite';
+            $backupPath = $directory . '/' . $backupName;
+            try {
+                pvdash_create_database_snapshot($targetPath, $backupPath);
+            } catch (Throwable) {
+                if (!copy($targetPath, $backupPath)) {
+                    throw new RuntimeException(t('database_error_backup'));
+                }
+                @chmod($backupPath, 0660);
+                foreach (['-wal', '-shm'] as $suffix) {
+                    if (is_file($targetPath . $suffix)) {
+                        @copy($targetPath . $suffix, $backupPath . $suffix);
+                        @chmod($backupPath . $suffix, 0660);
+                    }
+                }
+            }
+            @unlink($targetPath . '-wal');
+            @unlink($targetPath . '-shm');
+            if (!rename($targetPath, $oldPath)) {
+                throw new RuntimeException(t('database_error_replace'));
+            }
+        }
+
+        if (!rename($newPath, $targetPath)) {
+            if (is_file($oldPath)) {
+                @rename($oldPath, $targetPath);
+            }
+            throw new RuntimeException(t('database_error_replace'));
+        }
+        @chmod($targetPath, 0660);
+        if (is_file($oldPath)) {
+            @unlink($oldPath);
+        }
+        pvdash_prune_database_backups($directory);
+        pvdash_release_database_lock($lockHandle);
+        return $backupName;
+    } catch (Throwable $e) {
+        if (is_file($newPath)) {
+            @unlink($newPath);
+        }
+        @unlink($newPath . '-wal');
+        @unlink($newPath . '-shm');
+        if (is_file($oldPath) && !is_file($targetPath)) {
+            @rename($oldPath, $targetPath);
+        }
+        pvdash_release_database_lock($lockHandle);
+        throw $e;
+    }
+}
+
+function pvdash_data_devices(PDO $pdo): array
+{
+    $devices = [];
+    foreach (['samples', 'daily_totals', 'integ_state'] as $table) {
+        $rows = $pdo->query("SELECT DISTINCT device FROM " . $table . " WHERE device IS NOT NULL AND device <> ''")->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($rows as $device) {
+            $devices[] = (string) $device;
+        }
+    }
+    $devices = array_values(array_unique($devices));
+    sort($devices, SORT_NATURAL | SORT_FLAG_CASE);
+    return $devices;
 }

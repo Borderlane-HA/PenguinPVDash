@@ -21,9 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$lockHandle = null;
-$newPath = '';
-$oldPath = '';
+$preparedPath = '';
 try {
     $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
     if ($contentLength > 0 && $_POST === [] && $_FILES === []) {
@@ -57,89 +55,55 @@ try {
         throw new RuntimeException(t('database_error_too_large'));
     }
 
-    // Validate before touching the live database.
     pvdash_validate_database_file($uploadedPath);
+    $sourcePath = $uploadedPath;
+    $adoptedFrom = '';
+    $adoptedTo = '';
 
-    $targetPath = pvdash_database_path();
-    pvdash_ensure_database_directory($targetPath);
-    $directory = dirname($targetPath);
-    $token = bin2hex(random_bytes(8));
-    $newPath = $directory . '/.pvdash-import-' . $token . '.sqlite';
-    $oldPath = $directory . '/.pvdash-replaced-' . $token . '.sqlite';
-
-    $lockHandle = pvdash_acquire_database_lock(LOCK_EX);
-
-    if (!copy($uploadedPath, $newPath)) {
-        throw new RuntimeException(t('database_error_copy'));
-    }
-    @chmod($newPath, 0660);
-
-    // Bring older backups to the current schema before replacing the live DB.
-    $newPdo = pvdash_open_database($newPath, true);
-    pvdash_checkpoint_database($newPdo);
-    $newPdo = null;
-    @unlink($newPath . '-wal');
-    @unlink($newPath . '-shm');
-    pvdash_validate_database_file($newPath);
-
-    $backupName = '';
-    if (is_file($targetPath)) {
-        $backupName = 'pvdash-before-import-' . date('Ymd-His') . '-' . substr($token, 0, 6) . '.sqlite';
-        $backupPath = $directory . '/' . $backupName;
-        try {
-            pvdash_create_database_snapshot($targetPath, $backupPath);
-        } catch (Throwable) {
-            // A broken database may not support VACUUM INTO. Preserve its raw
-            // main/WAL/SHM files anyway so a manual recovery remains possible.
-            if (!copy($targetPath, $backupPath)) {
-                throw new RuntimeException(t('database_error_backup'));
-            }
-            @chmod($backupPath, 0660);
-            foreach (['-wal', '-shm'] as $suffix) {
-                if (is_file($targetPath . $suffix)) {
-                    @copy($targetPath . $suffix, $backupPath . $suffix);
-                    @chmod($backupPath . $suffix, 0660);
-                }
-            }
+    if (!empty($_POST['adopt_single_device'])) {
+        $preparedPath = dirname(pvdash_database_path())
+            . DIRECTORY_SEPARATOR
+            . '.pvdash-adopt-' . bin2hex(random_bytes(8)) . '.sqlite';
+        if (!copy($uploadedPath, $preparedPath)) {
+            throw new RuntimeException(t('database_error_copy'));
         }
-        @unlink($targetPath . '-wal');
-        @unlink($targetPath . '-shm');
-
-        if (!rename($targetPath, $oldPath)) {
-            throw new RuntimeException(t('database_error_replace'));
+        @chmod($preparedPath, 0660);
+        $preparedPdo = pvdash_open_database($preparedPath, true);
+        $dataDevices = pvdash_data_devices($preparedPdo);
+        if (count($dataDevices) !== 1) {
+            throw new RuntimeException(t('database_adopt_requires_single_device'));
         }
+        $adoptedFrom = (string) $dataDevices[0];
+        $adoptedTo = pvdash_default_device();
+        if ($adoptedFrom !== $adoptedTo) {
+            pvdash_rename_device_data($preparedPdo, $adoptedFrom, $adoptedTo, false);
+        }
+        pvdash_checkpoint_database($preparedPdo);
+        $preparedPdo = null;
+        @unlink($preparedPath . '-wal');
+        @unlink($preparedPath . '-shm');
+        pvdash_validate_database_file($preparedPath);
+        $sourcePath = $preparedPath;
     }
 
-    if (!rename($newPath, $targetPath)) {
-        if ($oldPath !== '' && is_file($oldPath)) {
-            @rename($oldPath, $targetPath);
-        }
-        throw new RuntimeException(t('database_error_replace'));
+    $backupName = pvdash_replace_database_from_file($sourcePath);
+    if ($preparedPath !== '') {
+        @unlink($preparedPath);
+        $preparedPath = '';
     }
-    @chmod($targetPath, 0660);
-    if ($oldPath !== '' && is_file($oldPath)) {
-        @unlink($oldPath);
-    }
-    pvdash_prune_database_backups($directory);
-    pvdash_release_database_lock($lockHandle);
-    $lockHandle = null;
 
     $message = $backupName !== ''
         ? t('database_import_success_backup', ['backup' => $backupName])
         : t('database_import_success');
+    if ($adoptedFrom !== '' && $adoptedFrom !== $adoptedTo) {
+        $message .= ' ' . t('database_adopt_success', ['from' => $adoptedFrom, 'to' => $adoptedTo]);
+    }
     database_import_redirect('message', $message);
 } catch (Throwable $e) {
-    if ($newPath !== '') {
-        @unlink($newPath);
-        @unlink($newPath . '-wal');
-        @unlink($newPath . '-shm');
+    if ($preparedPath !== '') {
+        @unlink($preparedPath);
+        @unlink($preparedPath . '-wal');
+        @unlink($preparedPath . '-shm');
     }
-    if ($oldPath !== '' && is_file($oldPath)) {
-        $targetPath = pvdash_database_path();
-        if (!is_file($targetPath)) {
-            @rename($oldPath, $targetPath);
-        }
-    }
-    pvdash_release_database_lock($lockHandle);
     database_import_redirect('error', $e->getMessage());
 }

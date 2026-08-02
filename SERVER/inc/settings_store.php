@@ -18,6 +18,16 @@ function pvdash_valid_device_id(string $device): bool
     return preg_match('/^[A-Za-z0-9_.:-]{1,64}$/', $device) === 1;
 }
 
+function pvdash_valid_hex_color(string $color): bool
+{
+    return preg_match('/^#[0-9A-Fa-f]{6}$/', $color) === 1;
+}
+
+function pvdash_runtime_metric_keys(): array
+{
+    return ['pv_kwh', 'feed_in_kwh', 'batt_in_kwh', 'batt_out_kwh', 'consumption_kwh', 'grid_import_kwh'];
+}
+
 function pvdash_validate_api_keys(array $keys): array
 {
     if (array_is_list($keys)) {
@@ -80,6 +90,78 @@ function pvdash_validate_runtime_settings(array $settings): array
             throw new InvalidArgumentException('api_keys must be an object.');
         }
         $validated['api_keys'] = pvdash_validate_api_keys($settings['api_keys']);
+    }
+
+    if (array_key_exists('site_title', $settings)) {
+        $title = trim((string) $settings['site_title']);
+        if ($title === '' || (function_exists('mb_strlen') ? mb_strlen($title) : strlen($title)) > 80) {
+            throw new InvalidArgumentException('site_title is empty or too long.');
+        }
+        $validated['site_title'] = $title;
+    }
+
+    if (array_key_exists('theme', $settings)) {
+        $theme = (string) $settings['theme'];
+        if (!in_array($theme, ['standard', 'dark', 'light'], true)) {
+            throw new InvalidArgumentException('Invalid theme.');
+        }
+        $validated['theme'] = $theme;
+    }
+
+    if (array_key_exists('accent_color', $settings)) {
+        $color = strtolower((string) $settings['accent_color']);
+        if (!pvdash_valid_hex_color($color)) {
+            throw new InvalidArgumentException('Invalid accent color.');
+        }
+        $validated['accent_color'] = $color;
+    }
+
+    if (array_key_exists('table_density', $settings)) {
+        $density = (string) $settings['table_density'];
+        if (!in_array($density, ['comfortable', 'compact'], true)) {
+            throw new InvalidArgumentException('Invalid table density.');
+        }
+        $validated['table_density'] = $density;
+    }
+
+    if (array_key_exists('highlight_extremes', $settings)) {
+        $validated['highlight_extremes'] = (bool) $settings['highlight_extremes'];
+    }
+
+    if (array_key_exists('metric_colors', $settings)) {
+        if (!is_array($settings['metric_colors'])) {
+            throw new InvalidArgumentException('metric_colors must be an object.');
+        }
+        $colors = [];
+        foreach (pvdash_runtime_metric_keys() as $metric) {
+            $entry = $settings['metric_colors'][$metric] ?? null;
+            if (!is_array($entry)) {
+                continue;
+            }
+            $min = strtolower((string) ($entry['min'] ?? ''));
+            $max = strtolower((string) ($entry['max'] ?? ''));
+            if (!pvdash_valid_hex_color($min) || !pvdash_valid_hex_color($max)) {
+                throw new InvalidArgumentException('Invalid metric highlight color.');
+            }
+            $colors[$metric] = ['min' => $min, 'max' => $max];
+        }
+        $validated['metric_colors'] = $colors;
+    }
+
+    if (array_key_exists('custom_logo_file', $settings)) {
+        $file = basename((string) $settings['custom_logo_file']);
+        if ($file !== '' && preg_match('/^branding-logo\.(png|jpe?g|webp)$/i', $file) !== 1) {
+            throw new InvalidArgumentException('Invalid custom logo file.');
+        }
+        $validated['custom_logo_file'] = $file;
+    }
+
+    if (array_key_exists('backup_retention', $settings)) {
+        $retention = (int) $settings['backup_retention'];
+        if ($retention < 1 || $retention > 25) {
+            throw new InvalidArgumentException('Backup retention is outside the allowed range.');
+        }
+        $validated['backup_retention'] = $retention;
     }
 
     return $validated;

@@ -2,10 +2,15 @@
 declare(strict_types=1);
 require_once __DIR__ . '/inc/web_auth.php';
 require_once __DIR__ . '/inc/i18n.php';
+require_once __DIR__ . '/inc/db.php';
+require_once __DIR__ . '/inc/ui.php';
 pvdash_require_stats();
 $canViewCompensation = pvdash_can_view_compensation();
 $feedInCt = $canViewCompensation ? (float) pvdash_config('feed_in_ct', 0.0) : 0.0;
+$pdo = db();
+$devices = pvdash_devices($pdo);
 $defaultDevice = pvdash_default_device();
+if (!in_array($defaultDevice, $devices, true)) { $devices[] = $defaultDevice; sort($devices, SORT_NATURAL | SORT_FLAG_CASE); }
 $monthNames = APP_LANG === 'de'
     ? ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
     : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -15,7 +20,7 @@ $monthNames = APP_LANG === 'de'
 <head>
 <meta charset='utf-8'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>PenguinPVDash – Stats</title>
+<title><?= th('stats_title') ?> – <?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?></title>
 <link rel='stylesheet' href='assets/style.css'/>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -48,16 +53,16 @@ $monthNames = APP_LANG === 'de'
   }
 </style>
 </head>
-<body>
+<body <?= pvdash_body_attributes() ?>>
 <div class='wrap'>
   <div class='card'>
     <div class='stats-header'>
-      <div class='brand-title'><img class='brand-icon' src='assets/penguin-pv-icon.png' alt='' width='42' height='42'><h1><?= th('stats_title') ?></h1><span class="status-pill <?= pvdash_is_admin() ? 'status-manual' : 'status-auto' ?>"><?= pvdash_is_admin() ? th('role_admin') : th('role_guest') ?></span></div>
-      <div class='top-actions'><a href='./' class='button'><?= th('stats_back') ?></a><?php if (pvdash_is_admin()): ?><a href='admin/' class='button button-primary'><?= th('nav_admin') ?></a><a href='admin/settings.php' class='button'><?= th('nav_settings') ?></a><a href='logout.php' class='button'><?= th('nav_logout') ?></a><?php elseif (pvdash_session_role() === 'guest'): ?><a href='logout.php' class='button'><?= th('nav_logout') ?></a><?php else: ?><a href='login.php?admin=1&amp;next=stats.php' class='button'><?= th('nav_admin_login') ?></a><?php endif; ?></div>
+      <?php pvdash_render_brand_heading(t('stats_title')); ?>
+      <?php pvdash_render_navigation('stats'); ?>
     </div>
 
     <div class='controls'>
-      <div class='group'><label><?= th('stats_device') ?></label><input id='device' value='<?= htmlspecialchars($defaultDevice, ENT_QUOTES, 'UTF-8') ?>'/></div>
+      <div class='group'><label for='device'><?= th('stats_device') ?></label><select id='device'><?php foreach ($devices as $device): ?><option value='<?= htmlspecialchars($device, ENT_QUOTES, 'UTF-8') ?>' <?= $device === $defaultDevice ? 'selected' : '' ?>><?= htmlspecialchars($device, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select></div>
       <div class='group'>
         <label><?= th('stats_mode') ?></label>
         <select id='mode'>
@@ -119,7 +124,12 @@ const FEEDIN_CT = <?= json_encode($feedInCt, JSON_PRESERVE_ZERO_FRACTION) ?>;
 const FEEDIN_EUR_PER_KWH = isFinite(FEEDIN_CT) ? (FEEDIN_CT/100) : 0;
 const CAN_VIEW_COMPENSATION = <?= $canViewCompensation ? 'true' : 'false' ?>;
 const NUMBER_LOCALE = <?= json_encode(APP_LANG === 'de' ? 'de-DE' : 'en-US') ?>;
+const HIGHLIGHT_EXTREMES = <?= (bool) pvdash_config('highlight_extremes', true) ? 'true' : 'false' ?>;
+const METRIC_COLORS = <?= json_encode(pvdash_metric_colors(), JSON_UNESCAPED_SLASHES) ?>;
 
+const rootStyles=getComputedStyle(document.body);
+const UI_TEXT=rootStyles.getPropertyValue('--fg').trim()||'#eaf2ff';
+const UI_GRID=rootStyles.getPropertyValue('--chart-grid').trim()||'rgba(255,255,255,.08)';
 const tb=document.getElementById('hist-tbody');
 const tf=document.getElementById('hist-tfoot');
 const yearSel=document.getElementById('year');
@@ -176,8 +186,8 @@ function buildRowsAndSummary(items){
         td.textContent=n2(raw).toLocaleString(NUMBER_LOCALE);
         if(it.day!==today){
           const ex=extremes[k];
-          if(ex.max!==null && raw===ex.max) td.classList.add('peak');
-          if(ex.min!==null && raw===ex.min) td.classList.add('low');
+          if(HIGHLIGHT_EXTREMES && ex.max!==null && raw===ex.max){ td.classList.add('peak'); td.style.setProperty('--cell-color', METRIC_COLORS[k]?.max || '#39d98a'); }
+          if(HIGHLIGHT_EXTREMES && ex.min!==null && raw===ex.min){ td.classList.add('low'); td.style.setProperty('--cell-color', METRIC_COLORS[k]?.min || '#8fb8ff'); }
         }
       }
       tr.appendChild(td);
@@ -258,7 +268,7 @@ function renderChart(items){
     maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: { display: true, labels: { color:'#cfe1ff' } },
+      legend: { display: true, labels: { color:UI_TEXT } },
       tooltip: {
         callbacks: {
           label: (ctx) => {
@@ -269,8 +279,8 @@ function renderChart(items){
       }
     },
     scales: {
-      x: { ticks:{ color:'#cfe1ff' }, grid:{ color:'rgba(255,255,255,0.08)' } },
-      y: { ticks:{ color:'#cfe1ff' }, grid:{ color:'rgba(255,255,255,0.08)' }, title:{ display:true, text:'kWh', color:'#cfe1ff' } }
+      x: { ticks:{ color:UI_TEXT }, grid:{ color:UI_GRID } },
+      y: { ticks:{ color:UI_TEXT }, grid:{ color:UI_GRID }, title:{ display:true, text:'kWh', color:UI_TEXT } }
     }
   };
 

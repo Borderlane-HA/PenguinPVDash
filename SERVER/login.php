@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/inc/web_auth.php';
 require_once __DIR__ . '/inc/i18n.php';
+require_once __DIR__ . '/inc/ui.php';
 
 $next = pvdash_safe_next((string) ($_GET['next'] ?? $_POST['next'] ?? './'));
 $error = '';
@@ -28,14 +29,14 @@ $guestProtected = ((string) pvdash_config('guest_password', '')) !== '';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= th('auth_login_title') ?> – PenguinPVDash</title>
+  <title><?= th('auth_login_title') ?> – <?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
-<body>
+<body <?= pvdash_body_attributes() ?>>
 <div class="auth-shell">
   <main class="auth-card">
-    <img class="login-logo" src="assets/penguin-pv-icon.png" alt="PenguinPVDash">
-    <h1>PenguinPVDash</h1>
+    <img class="login-logo" src="<?= htmlspecialchars(pvdash_logo_url(), ENT_QUOTES, 'UTF-8') ?>" alt="">
+    <h1><?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?></h1>
     <p class="muted"><?= $guestProtected ? th('auth_login_help_protected') : th('auth_login_help_public') ?></p>
     <?php if ($error !== ''): ?>
       <div class="alert alert-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>

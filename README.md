@@ -2,7 +2,7 @@
 
 PenguinPVDash publishes photovoltaic and energy data from Home Assistant to a lightweight, externally hosted dashboard. The Home Assistant custom integration sends the selected sensors to the PHP server at a configurable interval. Multiple independently editable server instances are supported.
 
-> Version 1.6.3 adds administrator-managed device IDs, API keys, dashboard default device, guest permissions and admin/guest passwords. Changes take effect immediately without restarting the container.
+> Version 1.7.0 adds unified navigation, device-data management after SQLite imports, automatic backup management and customizable dashboard branding, themes and table highlight colors.
 
 ## Features
 
@@ -13,7 +13,10 @@ PenguinPVDash publishes photovoltaic and energy data from Home Assistant to a li
 - Independent guest permissions for statistics and compensation
 - Admin editor for adding, correcting, locking, unlocking and deleting daily totals
 - Administrator-only SQLite export and import with validation and automatic pre-import backup
+- Device-data manager for setting the default source, renaming imported device IDs and deleting obsolete device data
+- Download, restore and delete server-side SQLite backups
 - Admin settings for device IDs, API keys, default dashboard device, passwords, compensation and guest permissions
+- Custom title and logo, standard/dark/light themes, accent color, table density and per-metric min/max colors
 - Manual corrections are protected from later Home Assistant updates
 - Multiple Home Assistant integration instances and server targets
 - Classic PHP hosting, Docker Compose and Proxmox VE LXC deployment
@@ -181,7 +184,7 @@ Set `guest_password` to an empty string for public read-only access, or configur
 
 ## Correcting missing or incorrect days
 
-Sign in as administrator and open **Edit data**.
+Sign in as administrator and open **Manage data**.
 
 A daily entry can be added or changed after the values have settled, for example on the following day. This also allows gaps caused by a server outage to be filled later. Saving a row locks it; future ingest requests and rebuild jobs leave that row unchanged. **Enable automatic updates** removes the lock.
 
@@ -224,6 +227,10 @@ The settings page can:
 - set, change or remove the guest password
 - configure guest access to statistics and compensation
 - change the compensation rate in ct/kWh
+- select the standard, dark or light theme and adjust the accent color
+- upload a persistent custom logo and change the dashboard title
+- configure compact or comfortable tables and min/max colors for every metric
+- choose how many automatic SQLite backups are retained
 
 API keys are never displayed again. The interface shows only a short SHA-256 fingerprint; leave the key field empty to keep the current key. After changing a device ID or key, update the same values in the matching Home Assistant integration entry.
 
@@ -231,12 +238,14 @@ The runtime settings file contains sensitive API credentials and must be backed 
 
 ## SQLite backup and restore
 
-Sign in as administrator and open **Edit data**. The **SQLite database** section provides:
+Sign in as administrator and open **Manage data**. The **SQLite database** section provides:
 
 - **Export SQLite**: creates a consistent standalone backup while safely checkpointing active WAL data. The download contains measurements and daily totals, but no passwords or API keys.
 - **Import SQLite**: validates the SQLite header, integrity, required PenguinPVDash schema and unsafe triggers before replacing the active database. Older PenguinPVDash databases are migrated to the current schema automatically.
 
-Immediately before an import, PenguinPVDash creates an additional server-side backup named `pvdash-before-import-*.sqlite` in the configured data directory. The newest five automatic pre-import backups are retained.
+Immediately before an import or restore, PenguinPVDash creates an additional server-side backup named `pvdash-before-import-*.sqlite` in the configured data directory. The number of retained backups can be configured from 1 to 25.
+
+The data-management page lists every device ID found in SQLite. Imported data can be renamed to the active Home Assistant device ID, optionally replacing existing target data, and then selected as the default source. When importing a database with exactly one device ID, an optional checkbox can automatically rename it to the current default device.
 
 For Docker and Proxmox installations, uploads up to 512 MB are enabled by the included PHP configuration. On classic hosting, the provider's `upload_max_filesize` and `post_max_size` settings may impose a lower limit.
 
