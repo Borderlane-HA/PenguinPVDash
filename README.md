@@ -4,6 +4,7 @@ PenguinPVDash is a Home Assistant extension that publishes selected PV and energ
 
 ![PenguinPVDash dashboard](SCREENSHOTS/Screenshot1.png)
 
+
 ## Home Assistant integration via HACS
 
 Deploy the Docker or Proxmox server first so Home Assistant can verify the connection during setup.
