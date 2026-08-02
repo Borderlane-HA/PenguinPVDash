@@ -1,10 +1,12 @@
 FROM php:8.3-apache
 
-ARG PVDASH_VERSION=1.7.1
+ARG PVDASH_VERSION=1.7.2
 LABEL org.opencontainers.image.title="PenguinPVDash" \
       org.opencontainers.image.description="Shareable photovoltaic dashboard for Home Assistant" \
       org.opencontainers.image.source="https://github.com/Borderlane-HA/PenguinPVDash" \
       org.opencontainers.image.version="${PVDASH_VERSION}"
+
+ENV PVDASH_VERSION=${PVDASH_VERSION}
 
 COPY docker/apache-pvdash.conf /etc/apache2/conf-available/penguinpvdash.conf
 COPY docker/php-pvdash.ini /usr/local/etc/php/conf.d/penguinpvdash.ini

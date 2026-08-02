@@ -98,6 +98,11 @@ return [
     'settings_general_title' => 'Dashboard & Gastrechte',
     'settings_default_device' => 'Standard-Gerät im Dashboard',
     'settings_default_device_help' => 'Damit kann beispielsweise home2 weiter als aktive Testinstanz angezeigt werden, während importierte Daten von home erhalten bleiben.',
+    'settings_language' => 'Standardsprache',
+    'settings_language_help' => 'Legt die Standardsprache fest. Jeder Besucher kann sie oben im Menü für sich umschalten.',
+    'settings_language_de' => 'Deutsch',
+    'settings_language_en' => 'Englisch',
+    'settings_invalid_language' => 'Die gewählte Sprache ist ungültig.',
     'settings_feed_in' => 'Einspeisevergütung (ct/kWh)',
     'settings_feed_in_help' => 'Punkt oder Komma sind möglich, zum Beispiel 7,5 oder 7.5.',
     'settings_guest_stats' => 'Gäste dürfen die Statistik öffnen',
@@ -183,6 +188,8 @@ return [
 
     // PenguinPVDash 1.7
     'nav_main' => 'Hauptnavigation',
+    'nav_language' => 'Sprache',
+
 
     'settings_backup_retention' => 'Anzahl automatischer Datenbank-Sicherungen',
     'settings_backup_retention_help' => 'Zwischen 1 und 25 Sicherungen werden nach Import oder Wiederherstellung aufbewahrt.',

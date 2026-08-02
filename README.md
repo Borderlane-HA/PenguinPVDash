@@ -12,7 +12,7 @@ PenguinPVDash is a Home Assistant extension that publishes selected PV and energ
 2. Add `https://github.com/Borderlane-HA/PenguinPVDash` as category **Integration**.
 3. Install PenguinPVDash and restart Home Assistant.
 4. Open **Settings → Devices & services → Add integration → PenguinPVDash**.
-5. Enter the complete server URL ending in `/api/ingest.php`, the matching API key, device ID and your PV sensors.
+5. Enter the server address (for example `http://10.10.4.122:8092`), the matching API key, device ID and your PV sensors. The integration adds `/api/ingest.php` automatically and can test the connection without writing measurement data.
 
 Multiple server entries are supported and can be edited later.
 
@@ -58,6 +58,6 @@ docker compose up -d
 
 ## Administration
 
-The admin area provides data correction, device-ID management, SQLite import/export and backups, API-key and password settings, guest permissions, themes, custom branding and statistics. Guests are read-only.
+The admin area provides data correction, device-ID management, SQLite import/export and backups, API-key and password settings, guest permissions, themes, dashboard language, custom branding and statistics. Guests are read-only.
 
 PenguinPVDash is under active development. Feedback and issue reports are welcome.

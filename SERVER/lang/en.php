@@ -98,6 +98,11 @@ return [
     'settings_general_title' => 'Dashboard & guest permissions',
     'settings_default_device' => 'Default dashboard device',
     'settings_default_device_help' => 'For example, home2 can remain the active test instance while imported home data is retained.',
+    'settings_language' => 'Default language',
+    'settings_language_help' => 'Sets the default language. Each visitor can switch it for their browser in the top menu.',
+    'settings_language_de' => 'German',
+    'settings_language_en' => 'English',
+    'settings_invalid_language' => 'The selected language is invalid.',
     'settings_feed_in' => 'Feed-in compensation (ct/kWh)',
     'settings_feed_in_help' => 'A decimal point or comma is accepted, for example 7.5 or 7,5.',
     'settings_guest_stats' => 'Guests may open statistics',
@@ -183,6 +188,8 @@ return [
 
     // PenguinPVDash 1.7
     'nav_main' => 'Main navigation',
+    'nav_language' => 'Language',
+
 
     'settings_backup_retention' => 'Automatic database backups to keep',
     'settings_backup_retention_help' => 'Keep between 1 and 25 backups after imports or restores.',

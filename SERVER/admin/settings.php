@@ -98,6 +98,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = (string) ($_POST['action'] ?? '');
 
         if ($action === 'save_general') {
+            $language = strtolower(trim((string) ($_POST['language'] ?? 'de')));
+            if (!in_array($language, ['de', 'en'], true)) {
+                throw new InvalidArgumentException(t('settings_invalid_language'));
+            }
+
             $defaultDevice = trim((string) ($_POST['default_device'] ?? ''));
             if (!pvdash_valid_device_id($defaultDevice)) {
                 throw new InvalidArgumentException(t('settings_invalid_device'));
@@ -118,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             pvdash_runtime_settings_update([
+                'language' => $language,
                 'default_device' => $defaultDevice,
                 'feed_in_ct' => $feedIn,
                 'backup_retention' => $backupRetention,
@@ -125,6 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'guest_can_view_compensation' => isset($_POST['guest_can_view_compensation']),
             ]);
             pvdash_prune_database_backups(dirname(pvdash_database_path()));
+            setcookie('pvdash_lang', $language, [
+                'expires' => time() + 31536000,
+                'path' => '/',
+                'samesite' => 'Lax',
+            ]);
             settings_redirect(t('settings_general_saved'));
         }
 
@@ -366,6 +377,13 @@ $metricLabels = [
       <label><?= th('settings_default_device') ?>
         <select name="default_device" required><?php foreach ($devices as $device): ?><option value="<?= htmlspecialchars($device, ENT_QUOTES, 'UTF-8') ?>" <?= $device === $defaultDevice ? 'selected' : '' ?>><?= htmlspecialchars($device, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select>
         <span class="field-help"><?= th('settings_default_device_help') ?></span>
+      </label>
+      <label><?= th('settings_language') ?>
+        <select name="language" required>
+          <option value="de" <?= (string) pvdash_config('language', 'de') === 'de' ? 'selected' : '' ?>><?= th('settings_language_de') ?></option>
+          <option value="en" <?= (string) pvdash_config('language', 'de') === 'en' ? 'selected' : '' ?>><?= th('settings_language_en') ?></option>
+        </select>
+        <span class="field-help"><?= th('settings_language_help') ?></span>
       </label>
       <label><?= th('settings_feed_in') ?>
         <input type="text" inputmode="decimal" name="feed_in_ct" value="<?= htmlspecialchars(number_format((float) pvdash_config('feed_in_ct', 0), 3, '.', ''), ENT_QUOTES, 'UTF-8') ?>" required>

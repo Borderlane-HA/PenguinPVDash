@@ -115,6 +115,29 @@ function pvdash_logo_url(string $root = ''): string
     return $root . 'assets/penguin-pv-icon.png';
 }
 
+function pvdash_language_url(string $language): string
+{
+    $language = in_array($language, ['de', 'en'], true) ? $language : 'en';
+    $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? './');
+    $path = strtok($requestUri, '?');
+    if ($path === false || $path === '') {
+        $path = './';
+    }
+    $query = $_GET;
+    $query['lang'] = $language;
+    return $path . '?' . http_build_query($query);
+}
+
+function pvdash_render_language_switch(): void
+{
+    echo '<span class="language-switch" aria-label="' . th('nav_language') . '">';
+    foreach (['de' => 'DE', 'en' => 'EN'] as $language => $label) {
+        $class = 'language-link' . (APP_LANG === $language ? ' is-active' : '');
+        echo '<a class="' . $class . '" href="' . htmlspecialchars(pvdash_language_url($language), ENT_QUOTES, 'UTF-8') . '">' . $label . '</a>';
+    }
+    echo '</span>';
+}
+
 function pvdash_render_navigation(string $active, string $root = ''): void
 {
     $links = [
@@ -143,6 +166,7 @@ function pvdash_render_navigation(string $active, string $root = ''): void
             echo '<a class="button" href="' . htmlspecialchars($root . 'logout.php', ENT_QUOTES, 'UTF-8') . '">' . th('nav_logout') . '</a>';
         }
     }
+    pvdash_render_language_switch();
     echo '</nav>';
 }
 

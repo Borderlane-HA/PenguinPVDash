@@ -3,59 +3,169 @@
   "config": {
     "step": {
       "user": {
-        "title": "PenguinPVDash konfigurieren",
-        "description": "Erstelle eine separat bearbeitbare Server-Instanz. Weitere Instanzen kannst du später hinzufügen.",
-        "data": {
-          "instance_name": "Instanzname (z. B. Familie, Öffentlich, Test)",
-          "server_url": "Server URL (z. B. https://…/api/ingest.php)",
-          "api_key": "API Key (optional)",
-          "device_id": "Geräte-ID",
-          "interval": "Intervall (Minuten)",
-          "output_unit": "Leistungseinheit (W oder kW)",
-          "pv_entity": "PV-Leistung",
-          "batt_soc_entity": "Batterie SOC (%)",
-          "feedin_entity": "Einspeisung (Leistung)",
-          "consumption_entity": "Verbrauch (Leistung)",
-          "grid_import_entity": "Netzbezug (Leistung)",
-          "batt_charge_entity": "Batterie IN (Leistung)",
-          "batt_discharge_entity": "Batterie OUT (Leistung)",
-          "pv_total_kwh_entity": "PV gesamt (kWh)",
-          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
-          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
-          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)",
-          "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
-          "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)"
+        "title": "Instanz konfigurieren",
+        "description": "Hinterlege den PenguinPVDash-Server und ordne deine Home-Assistant-Energiesensoren zu. Die Serveradresse kann mit oder ohne `/api/ingest.php` eingegeben werden.",
+        "sections": {
+          "connection": {
+            "name": "Instanz & Server",
+            "description": "Verbindung, Authentifizierung und Übertragung.",
+            "data": {
+              "instance_name": "Instanzname",
+              "server_url": "Serveradresse",
+              "api_key": "API-Key",
+              "device_id": "Geräte-ID",
+              "interval": "Intervall (Minuten)",
+              "output_unit": "Leistungseinheit",
+              "verify_server": "Server vor dem Speichern prüfen"
+            },
+            "data_description": {
+              "instance_name": "Ein verständlicher Name wie Familie, Öffentlich oder Test.",
+              "server_url": "Beispiele: `10.10.4.122:8092`, `https://pv.example.org` oder eine vollständige URL bis `/api/ingest.php`. Der Ingest-Pfad wird automatisch ergänzt.",
+              "api_key": "Muss mit dem API-Key übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+              "device_id": "Kennzeichnet diese Datenquelle auf dem Server, zum Beispiel `home` oder `home2`.",
+              "interval": "Wie oft Home Assistant Daten überträgt. Eine Minute wird empfohlen.",
+              "output_unit": "Einheit der ausgewählten aktuellen Leistungssensoren.",
+              "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Key, ohne einen Messwert zu speichern. Nur bei einem aktuell nicht erreichbaren Server deaktivieren."
+            }
+          },
+          "power": {
+            "name": "PV, Verbrauch & Netz",
+            "description": "Aktuelle Leistungssensoren für den Energiefluss.",
+            "data": {
+              "pv_entity": "PV-Leistung",
+              "consumption_entity": "Verbrauchsleistung",
+              "feedin_entity": "Einspeiseleistung",
+              "grid_import_entity": "Netzbezugsleistung"
+            },
+            "data_description": {
+              "consumption_entity": "Wähle den fertigen Gesamtverbrauch des Hauses. Bei einem zusätzlichen Balkonkraftwerk verwendest du hier deinen berechneten Bruttoverbrauchssensor."
+            }
+          },
+          "battery": {
+            "name": "Batteriespeicher",
+            "description": "Optionaler Ladezustand sowie aktuelle Lade- und Entladeleistung.",
+            "data": {
+              "batt_soc_entity": "Batterieladezustand (%)",
+              "batt_charge_entity": "Batterie-Ladeleistung",
+              "batt_discharge_entity": "Batterie-Entladeleistung"
+            }
+          },
+          "energy": {
+            "name": "Tagesenergien",
+            "description": "Tägliche kWh-Sensoren für Historie und Statistik.",
+            "data": {
+              "pv_total_kwh_entity": "PV gesamt (kWh)",
+              "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
+              "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
+              "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)",
+              "batt_in_total_kwh_entity": "Batterieladung gesamt (kWh)",
+              "batt_out_total_kwh_entity": "Batterieentladung gesamt (kWh)"
+            },
+            "data_description": {
+              "consumption_total_kwh_entity": "Wähle den fertigen Tages-Gesamtverbrauch. PenguinPVDash berechnet den Verbrauch auf dem Server nicht erneut."
+            }
+          }
         }
       }
+    },
+    "error": {
+      "invalid_url": "Die Serveradresse ist ungültig. Verwende eine IP-Adresse oder eine HTTP-/HTTPS-URL.",
+      "cannot_connect": "Der Server ist nicht erreichbar. Prüfe Adresse, Port, Firewall und Docker-Container.",
+      "invalid_auth": "Der Server hat die Geräte-ID oder den API-Key abgelehnt.",
+      "invalid_server": "Unter dieser Adresse wurde kein kompatibler PenguinPVDash-Server erkannt.",
+      "unknown": "Beim Prüfen des Servers ist ein unerwarteter Fehler aufgetreten."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "PenguinPVDash-Instanz bearbeiten",
-        "data": {
-          "instance_name": "Instanzname",
-          "server_url": "Server URL",
-          "api_key": "API Key",
-          "device_id": "Geräte-ID",
-          "interval": "Intervall (Minuten)",
-          "output_unit": "Leistungseinheit (W oder kW)",
-          "pv_entity": "PV-Leistung",
-          "batt_soc_entity": "Batterie SOC (%)",
-          "feedin_entity": "Einspeisung (Leistung)",
-          "consumption_entity": "Verbrauch (Leistung)",
-          "grid_import_entity": "Netzbezug (Leistung)",
-          "batt_charge_entity": "Batterie IN (Leistung)",
-          "batt_discharge_entity": "Batterie OUT (Leistung)",
-          "pv_total_kwh_entity": "PV gesamt (kWh)",
-          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
-          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
-          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)",
-          "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
-          "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)"
+        "title": "Instanz verwalten",
+        "description": "Bearbeite die Instanz oder prüfe die aktuell gespeicherte Serververbindung.",
+        "menu_options": {
+          "configure": "Konfiguration bearbeiten",
+          "test_connection": "Serververbindung prüfen"
         },
-        "description": "Benenne diese Instanz um oder ändere Server, API-Key, Intervall und Sensorzuordnung."
+        "menu_option_descriptions": {
+          "configure": "Server, API-Key, Geräte-ID, Intervall und Sensorzuordnung ändern.",
+          "test_connection": "Gespeicherte URL, Geräte-ID und API-Key prüfen, ohne einen Messwert zu speichern."
+        }
+      },
+      "configure": {
+        "title": "Instanz bearbeiten",
+        "description": "Alle Einstellungen sind thematisch gruppiert. Die Serveradresse kann mit oder ohne `/api/ingest.php` eingegeben werden.",
+        "sections": {
+          "connection": {
+            "name": "Instanz & Server",
+            "description": "Verbindung, Authentifizierung und Übertragung.",
+            "data": {
+              "instance_name": "Instanzname",
+              "server_url": "Serveradresse",
+              "api_key": "API-Key",
+              "device_id": "Geräte-ID",
+              "interval": "Intervall (Minuten)",
+              "output_unit": "Leistungseinheit",
+              "verify_server": "Server vor dem Speichern prüfen"
+            },
+            "data_description": {
+              "server_url": "Beispiele: `10.10.4.122:8092`, `https://pv.example.org` oder eine vollständige URL bis `/api/ingest.php`. Der Ingest-Pfad wird automatisch ergänzt.",
+              "api_key": "Muss mit dem API-Key übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+              "device_id": "Kennzeichnet diese Datenquelle auf dem Server, zum Beispiel `home` oder `home2`.",
+              "interval": "Wie oft Home Assistant Daten überträgt. Eine Minute wird empfohlen.",
+              "output_unit": "Einheit der ausgewählten aktuellen Leistungssensoren.",
+              "verify_server": "Die Prüfung läuft nur, wenn URL, API-Key oder Geräte-ID geändert wurden."
+            }
+          },
+          "power": {
+            "name": "PV, Verbrauch & Netz",
+            "description": "Aktuelle Leistungssensoren für den Energiefluss.",
+            "data": {
+              "pv_entity": "PV-Leistung",
+              "consumption_entity": "Verbrauchsleistung",
+              "feedin_entity": "Einspeiseleistung",
+              "grid_import_entity": "Netzbezugsleistung"
+            },
+            "data_description": {
+              "consumption_entity": "Wähle den fertigen Gesamtverbrauch des Hauses."
+            }
+          },
+          "battery": {
+            "name": "Batteriespeicher",
+            "description": "Optionaler Ladezustand sowie aktuelle Lade- und Entladeleistung.",
+            "data": {
+              "batt_soc_entity": "Batterieladezustand (%)",
+              "batt_charge_entity": "Batterie-Ladeleistung",
+              "batt_discharge_entity": "Batterie-Entladeleistung"
+            }
+          },
+          "energy": {
+            "name": "Tagesenergien",
+            "description": "Tägliche kWh-Sensoren für Historie und Statistik.",
+            "data": {
+              "pv_total_kwh_entity": "PV gesamt (kWh)",
+              "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
+              "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
+              "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)",
+              "batt_in_total_kwh_entity": "Batterieladung gesamt (kWh)",
+              "batt_out_total_kwh_entity": "Batterieentladung gesamt (kWh)"
+            }
+          }
+        }
+      },
+      "test_connection": {
+        "title": "Serververbindung prüfen",
+        "description": "Prüfe `{url}` für das Gerät `{device}`. Es werden keine Messdaten gespeichert."
       }
+    },
+    "error": {
+      "invalid_url": "Die Serveradresse ist ungültig. Verwende eine IP-Adresse oder eine HTTP-/HTTPS-URL.",
+      "cannot_connect": "Der Server ist nicht erreichbar. Prüfe Adresse, Port, Firewall und Docker-Container.",
+      "invalid_auth": "Der Server hat die Geräte-ID oder den API-Key abgelehnt.",
+      "invalid_server": "Unter dieser Adresse wurde kein kompatibler PenguinPVDash-Server erkannt.",
+      "unknown": "Beim Prüfen des Servers ist ein unerwarteter Fehler aufgetreten."
     }
+  },
+  "abort": {
+    "connection_successful": "Verbindung erfolgreich. PenguinPVDash {version} wurde unter {url} erreicht; Geräte-ID und API-Key wurden akzeptiert.",
+    "connection_reachable_unverified": "Der Server ist unter {url} erreichbar, unterstützt mit Version {version} aber noch keine schreibfreie Authentifizierungsprüfung. Aktualisiere den Server, um den API-Key aus Home Assistant heraus zu prüfen."
   }
 }

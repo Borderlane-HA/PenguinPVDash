@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.2
+
+- Home Assistant integration form grouped into server, PV/grid, battery and daily-energy sections.
+- Server addresses can be entered without `/api/ingest.php`; the endpoint is normalized automatically.
+- Added a non-writing server, device-ID and API-key connection test.
+- Added a configurable dashboard default language and a DE/EN switch in the header.
+
 ## 1.7.1
 
 - Fixed dark bands above and below light pages by applying theme variables to the document root.

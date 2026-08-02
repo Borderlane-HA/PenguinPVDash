@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 
+from .api import InvalidServerUrl, normalize_ingest_url
 from .const import (
     CONF_API_KEY,
     CONF_BATT_CHARGE_ENTITY,
@@ -74,7 +75,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async def send_once(now: datetime | None = None) -> None:
         """Collect the configured states and send one payload."""
-        server_url = str(option(CONF_SERVER_URL, "")).strip()
+        configured_url = str(option(CONF_SERVER_URL, "")).strip()
+        try:
+            server_url = normalize_ingest_url(configured_url)
+        except InvalidServerUrl:
+            _LOGGER.warning("PenguinPVDash: invalid server URL configured: %s", configured_url)
+            return
         device_id = str(option(CONF_DEVICE_ID, "home") or "home").strip()
         unit = str(option(CONF_OUTPUT_UNIT, DEFAULT_OUTPUT_UNIT) or DEFAULT_OUTPUT_UNIT).strip()
         api_key = str(option(CONF_API_KEY, "") or "")

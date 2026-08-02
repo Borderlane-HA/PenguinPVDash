@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "sections": {
+          "connection": "mdi:server-network",
+          "power": "mdi:solar-power",
+          "battery": "mdi:battery-charging",
+          "energy": "mdi:chart-line"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "configure": {
+        "sections": {
+          "connection": "mdi:server-network",
+          "power": "mdi:solar-power",
+          "battery": "mdi:battery-charging",
+          "energy": "mdi:chart-line"
+        }
+      },
+      "init": {
+        "menu_options": {
+          "configure": "mdi:tune-variant",
+          "test_connection": "mdi:lan-connect"
+        }
+      }
+    }
+  }
+}

@@ -53,6 +53,14 @@ function pvdash_validate_runtime_settings(array $settings): array
 {
     $validated = [];
 
+    if (array_key_exists('language', $settings)) {
+        $language = strtolower(trim((string) $settings['language']));
+        if (!in_array($language, ['de', 'en'], true)) {
+            throw new InvalidArgumentException('Invalid language.');
+        }
+        $validated['language'] = $language;
+    }
+
     if (array_key_exists('default_device', $settings)) {
         $device = trim((string) $settings['default_device']);
         if ($device !== '' && !pvdash_valid_device_id($device)) {

@@ -6,6 +6,7 @@ CONF_API_KEY = "api_key"
 CONF_DEVICE_ID = "device_id"
 CONF_INTERVAL = "interval"
 CONF_OUTPUT_UNIT = "output_unit"
+CONF_VERIFY_SERVER = "verify_server"
 
 CONF_PV_ENTITY = "pv_entity"
 CONF_BATT_SOC_ENTITY = "batt_soc_entity"

@@ -327,3 +327,34 @@ body[data-theme="light"] .top-actions .button-primary{color:#fff}
   .brand-icon{width:42px;height:42px;flex-basis:42px}
   .brand-title h1{font-size:19px}
 }
+
+
+/* ===== PenguinPVDash 1.7.2 language selector ===== */
+.language-switch{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  margin-left:2px;
+  padding:3px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--input);
+}
+.language-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:32px;
+  min-height:30px;
+  padding:4px 7px;
+  border-radius:7px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  text-decoration:none;
+}
+.language-link:hover{color:var(--fg);background:var(--surface-2)}
+.language-link.is-active{color:#fff;background:var(--accent);box-shadow:0 3px 10px color-mix(in srgb,var(--accent) 28%,transparent)}
+body[data-theme="light"] .language-link.is-active{color:#fff}
+
+.auth-language{display:flex;justify-content:center;margin:-2px 0 8px}.auth-language .language-switch{margin:0}
