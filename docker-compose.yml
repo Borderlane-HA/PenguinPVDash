@@ -1,0 +1,30 @@
+services:
+  penguinpvdash:
+    image: ghcr.io/borderlane-ha/penguinpvdash:latest
+    build:
+      context: .
+      args:
+        PVDASH_VERSION: "1.6.0"
+    container_name: penguinpvdash
+    restart: unless-stopped
+    ports:
+      - "${PVDASH_PORT:-8092}:80"
+    environment:
+      TZ: "${TZ:-Europe/Berlin}"
+      PVDASH_DEFAULT_LANGUAGE: "${PVDASH_DEFAULT_LANGUAGE:-de}"
+      PVDASH_SQLITE: /var/lib/penguinpvdash/pvdash.sqlite
+      PVDASH_FEED_IN_CT: "${PVDASH_FEED_IN_CT:-0}"
+      PVDASH_ADMIN_PASSWORD: "${PVDASH_ADMIN_PASSWORD:?Set PVDASH_ADMIN_PASSWORD in .env}"
+      PVDASH_GUEST_PASSWORD: "${PVDASH_GUEST_PASSWORD:-}"
+      PVDASH_GUEST_CAN_VIEW_STATS: "${PVDASH_GUEST_CAN_VIEW_STATS:-true}"
+      PVDASH_GUEST_CAN_VIEW_COMPENSATION: "${PVDASH_GUEST_CAN_VIEW_COMPENSATION:-false}"
+      PVDASH_REQUIRE_INGEST_AUTH: "${PVDASH_REQUIRE_INGEST_AUTH:-true}"
+      PVDASH_API_KEYS_JSON: '${PVDASH_API_KEYS_JSON:?Set PVDASH_API_KEYS_JSON in .env}'
+    volumes:
+      - ./data:/var/lib/penguinpvdash
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1/health.php"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

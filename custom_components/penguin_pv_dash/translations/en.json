@@ -1,0 +1,61 @@
+{
+  "title": "PenguinPVDash",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure PenguinPVDash",
+        "description": "Create a separately editable server instance. You can add further instances later.",
+        "data": {
+          "instance_name": "Instance name (e.g. Family, Public, Test)",
+          "server_url": "Server URL (e.g. https://…/api/ingest.php)",
+          "api_key": "API Key (optional)",
+          "device_id": "Device ID",
+          "interval": "Interval (minutes)",
+          "output_unit": "Power unit (W or kW)",
+          "pv_entity": "PV power",
+          "batt_soc_entity": "Battery SOC (%)",
+          "feedin_entity": "Feed-in (power)",
+          "consumption_entity": "House consumption (power)",
+          "grid_import_entity": "Grid import (power)",
+          "batt_charge_entity": "Battery IN (power)",
+          "batt_discharge_entity": "Battery OUT (power)",
+          "pv_total_kwh_entity": "PV total (kWh)",
+          "feedin_total_kwh_entity": "Feed-in total (kWh)",
+          "batt_in_total_kwh_entity": "Battery IN total (kWh)",
+          "batt_out_total_kwh_entity": "Battery OUT total (kWh)",
+          "consumption_total_kwh_entity": "Consumption total (kWh)",
+          "grid_import_total_kwh_entity": "Grid import total (kWh)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Edit PenguinPVDash instance",
+        "data": {
+          "instance_name": "Instance name",
+          "server_url": "Server URL",
+          "api_key": "API Key",
+          "device_id": "Device ID",
+          "interval": "Interval (minutes)",
+          "output_unit": "Power unit (W or kW)",
+          "pv_entity": "PV power",
+          "batt_soc_entity": "Battery SOC (%)",
+          "feedin_entity": "Feed-in (power)",
+          "consumption_entity": "House consumption (power)",
+          "grid_import_entity": "Grid import (power)",
+          "batt_charge_entity": "Battery IN (power)",
+          "batt_discharge_entity": "Battery OUT (power)",
+          "pv_total_kwh_entity": "PV total (kWh)",
+          "feedin_total_kwh_entity": "Feed-in total (kWh)",
+          "batt_in_total_kwh_entity": "Battery IN total (kWh)",
+          "batt_out_total_kwh_entity": "Battery OUT total (kWh)",
+          "consumption_total_kwh_entity": "Consumption total (kWh)",
+          "grid_import_total_kwh_entity": "Grid import total (kWh)"
+        },
+        "description": "Rename this instance or change its server, API key, interval and entity mapping."
+      }
+    }
+  }
+}

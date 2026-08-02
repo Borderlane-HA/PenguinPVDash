@@ -1,0 +1,61 @@
+{
+  "title": "PenguinPVDash",
+  "config": {
+    "step": {
+      "user": {
+        "title": "PenguinPVDash konfigurieren",
+        "description": "Erstelle eine separat bearbeitbare Server-Instanz. Weitere Instanzen kannst du später hinzufügen.",
+        "data": {
+          "instance_name": "Instanzname (z. B. Familie, Öffentlich, Test)",
+          "server_url": "Server URL (z. B. https://…/api/ingest.php)",
+          "api_key": "API Key (optional)",
+          "device_id": "Geräte-ID",
+          "interval": "Intervall (Minuten)",
+          "output_unit": "Leistungseinheit (W oder kW)",
+          "pv_entity": "PV-Leistung",
+          "batt_soc_entity": "Batterie SOC (%)",
+          "feedin_entity": "Einspeisung (Leistung)",
+          "consumption_entity": "Verbrauch (Leistung)",
+          "grid_import_entity": "Netzbezug (Leistung)",
+          "batt_charge_entity": "Batterie IN (Leistung)",
+          "batt_discharge_entity": "Batterie OUT (Leistung)",
+          "pv_total_kwh_entity": "PV gesamt (kWh)",
+          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
+          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
+          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)",
+          "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
+          "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PenguinPVDash-Instanz bearbeiten",
+        "data": {
+          "instance_name": "Instanzname",
+          "server_url": "Server URL",
+          "api_key": "API Key",
+          "device_id": "Geräte-ID",
+          "interval": "Intervall (Minuten)",
+          "output_unit": "Leistungseinheit (W oder kW)",
+          "pv_entity": "PV-Leistung",
+          "batt_soc_entity": "Batterie SOC (%)",
+          "feedin_entity": "Einspeisung (Leistung)",
+          "consumption_entity": "Verbrauch (Leistung)",
+          "grid_import_entity": "Netzbezug (Leistung)",
+          "batt_charge_entity": "Batterie IN (Leistung)",
+          "batt_discharge_entity": "Batterie OUT (Leistung)",
+          "pv_total_kwh_entity": "PV gesamt (kWh)",
+          "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
+          "batt_in_total_kwh_entity": "Batterie IN gesamt (kWh)",
+          "batt_out_total_kwh_entity": "Batterie OUT gesamt (kWh)",
+          "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
+          "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)"
+        },
+        "description": "Benenne diese Instanz um oder ändere Server, API-Key, Intervall und Sensorzuordnung."
+      }
+    }
+  }
+}
