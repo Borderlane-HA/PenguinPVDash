@@ -179,6 +179,11 @@ const FLOW_LABELS = <?= json_encode([
   'pvBattery' => t('flow_pv_battery'),
   'batteryHome' => t('flow_battery_home'),
   'gridHome' => t('flow_grid_home'),
+  'batteryCharging' => t('flow_battery_charging'),
+  'batteryDischarging' => t('flow_battery_discharging'),
+  'gridImport' => t('flow_grid_import'),
+  'gridExport' => t('flow_grid_export'),
+  'idle' => t('flow_idle'),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
 /* ===== Helpers ===== */
@@ -211,6 +216,27 @@ function flowVisuals(v){
   const count = Math.max(2, Math.min(8, Math.round(Math.sqrt(x)*3)));
   const dur = Math.max(2.2, Math.min(14, 10 / Math.log2(2 + x)));
   return {count, dur};
+}
+function smartPower(value){
+  const power = Math.max(0, Number(value) || 0);
+  if(power < 1){
+    return `${Math.round(power * 1000).toLocaleString(NUMBER_LOCALE)} W`;
+  }
+  return `${power.toLocaleString(NUMBER_LOCALE,{minimumFractionDigits:0,maximumFractionDigits:2})} kW`;
+}
+function rebuildFlowBars(groupId,pathId,count,durSec){
+  const group=document.getElementById(groupId); if(!group) return;
+  group.innerHTML=''; if(count<=0) return;
+  const bars=Math.max(1,Math.min(6,count));
+  for(let i=0;i<bars;i++){
+    const bar=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    bar.setAttribute('x','-7');bar.setAttribute('y','-3');bar.setAttribute('width','14');bar.setAttribute('height','6');bar.setAttribute('rx','3');bar.setAttribute('class','flow-bar');
+    const motion=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+    motion.setAttribute('dur',`${durSec.toFixed(2)}s`);motion.setAttribute('repeatCount','indefinite');motion.setAttribute('rotate','auto');motion.setAttribute('begin',`${(-i*(durSec/bars)).toFixed(2)}s`);
+    const path=document.createElementNS('http://www.w3.org/2000/svg','mpath');
+    path.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','#'+pathId);
+    motion.appendChild(path);bar.appendChild(motion);group.appendChild(bar);
+  }
 }
 
 /* ===== Live-Refresh ===== */
@@ -253,49 +279,94 @@ async function refreshLive(){
     else if(p < 60) bat.classList.add('mid');
   }
 
-  // Node-Glow (fancy) wenn Leistung anliegt
+  // Node activity
   setNodeOn('n_pv',    pv > 0.01);
   setNodeOn('n_house', cons > 0.01);
   setNodeOn('n_grid',  (importKW > 0.01) || (exportKW > 0.01));
   setNodeOn('n_batt',  (bi > 0.01) || (bo > 0.01));
 
-  // Fluss-Sichtbarkeit
-  const pvToHouse      = Math.max(0, Math.min(cons, pv - bi - exportKW));
-  const pvOn          = pv > 0.01;
-  const pv_house_on   = pvToHouse > 0.01;
-  const pv_grid_on    = pvOn && exportKW > 0.01;
-  const pv_batt_on    = pvOn && bi       > 0.01;
-  const batt_house_on = bo   > 0.01;
-  const grid_house_on = importKW > 0.01;
+  const modernFlow = document.getElementById('flow_modern_e3dc');
+  if(modernFlow){
+    setText('pv_now', smartPower(pv));
+    setText('cons_now', smartPower(cons));
 
-  setFlowVisible('l_pv_house',   pv_house_on);
-  setFlowVisible('l_pv_grid',    pv_grid_on);
-  setFlowVisible('l_pv_batt',    pv_batt_on);
-  setFlowVisible('l_batt_house', batt_house_on);
-  setFlowVisible('l_grid_house', grid_house_on);
+    const gridExporting = exportKW > 0.01;
+    const gridImporting = !gridExporting && importKW > 0.01;
+    setText('modern_grid_now', smartPower(gridExporting ? exportKW : (gridImporting ? importKW : 0)));
+    setText('modern_grid_mode', gridExporting ? FLOW_LABELS.gridExport : (gridImporting ? FLOW_LABELS.gridImport : FLOW_LABELS.idle));
 
-  // (Optionale) Labels
-  setLabel('lab_pv_house',   FLOW_LABELS.pvHome + ' ' + kw(pvToHouse) + ' kW');
-  setLabel('lab_pv_grid',    FLOW_LABELS.pvGrid + ' ' + kw(exportKW) + ' kW');
-  setLabel('lab_pv_batt',    FLOW_LABELS.pvBattery + ' ' + kw(bi) + ' kW');
-  setLabel('lab_batt_house', FLOW_LABELS.batteryHome + ' ' + kw(bo) + ' kW');
-  setLabel('lab_grid_house', FLOW_LABELS.gridHome + ' ' + kw(importKW) + ' kW');
+    const batteryDischarging = bo > 0.01;
+    const batteryCharging = !batteryDischarging && bi > 0.01;
+    setText('modern_battery_now', smartPower(batteryDischarging ? bo : (batteryCharging ? bi : 0)));
+    setText('modern_battery_mode', batteryDischarging ? FLOW_LABELS.batteryDischarging : (batteryCharging ? FLOW_LABELS.batteryCharging : FLOW_LABELS.idle));
 
-  // Token-Animation
-  const v1 = flowVisuals(pvToHouse);
-  rebuildTokens('tok_pv_house','l_pv_house', pv_house_on ? v1.count : 0, v1.dur, 'pv');
+    const pvOn = pv > 0.01;
+    const houseOn = cons > 0.01;
+    setFlowVisible('m_pv_hub', pvOn);
+    setFlowVisible('m_hub_house', houseOn);
+    setFlowVisible('m_hub_grid', gridExporting);
+    setFlowVisible('m_grid_hub', gridImporting);
+    setFlowVisible('m_hub_batt', batteryCharging);
+    setFlowVisible('m_batt_hub', batteryDischarging);
 
-  const v2 = flowVisuals(exportKW);
-  rebuildTokens('tok_pv_grid','l_pv_grid',   pv_grid_on ? v2.count : 0, v2.dur, 'pv');
+    const pvVisual=flowVisuals(pv);
+    rebuildFlowBars('tok_m_pv_hub','m_pv_hub',pvOn?pvVisual.count:0,pvVisual.dur);
+    const houseVisual=flowVisuals(cons);
+    rebuildFlowBars('tok_m_house','m_hub_house',houseOn?houseVisual.count:0,houseVisual.dur);
+    const gridPower=gridExporting?exportKW:(gridImporting?importKW:0);
+    const gridVisual=flowVisuals(gridPower);
+    rebuildFlowBars('tok_m_grid',gridExporting?'m_hub_grid':'m_grid_hub',gridPower>0.01?gridVisual.count:0,gridVisual.dur);
+    const batteryPower=batteryDischarging?bo:(batteryCharging?bi:0);
+    const batteryVisual=flowVisuals(batteryPower);
+    rebuildFlowBars('tok_m_batt',batteryDischarging?'m_batt_hub':'m_hub_batt',batteryPower>0.01?batteryVisual.count:0,batteryVisual.dur);
 
-  const v3 = flowVisuals(bi);
-  rebuildTokens('tok_pv_batt','l_pv_batt',   pv_batt_on ? v3.count : 0, v3.dur, 'pv');
+    const todayConsumption=Number.parseFloat(t.consumption_kwh);
+    const todayGridImport=Number.parseFloat(t.grid_import_kwh);
+    const autarky=Number.isFinite(todayConsumption)&&todayConsumption>0
+      ? Math.max(0,Math.min(100,(todayConsumption-Math.max(0,Number.isFinite(todayGridImport)?todayGridImport:0))/todayConsumption*100))
+      : null;
+    setText('flow_autarky',autarky===null?'–':Math.round(autarky).toLocaleString(NUMBER_LOCALE));
+    const hub=document.getElementById('flow_autarky_hub');
+    if(hub) hub.style.setProperty('--autarky',autarky===null?0:autarky.toFixed(1));
+  } else {
+    setText('pv_now', kw(pv)+' kW');
+    setText('cons_now', kw(cons)+' kW');
+    setText('grid_import_now', kw(importKW));
+    setText('export_now', kw(exportKW));
+    setText('b_in_now', kw(bi));
+    setText('b_out_now', kw(bo));
 
-  const v4 = flowVisuals(bo);
-  rebuildTokens('tok_batt_house','l_batt_house', batt_house_on ? v4.count : 0, v4.dur, 'batt');
+    const pvToHouse      = Math.max(0, Math.min(cons, pv - bi - exportKW));
+    const pvOn          = pv > 0.01;
+    const pv_house_on   = pvToHouse > 0.01;
+    const pv_grid_on    = pvOn && exportKW > 0.01;
+    const pv_batt_on    = pvOn && bi       > 0.01;
+    const batt_house_on = bo   > 0.01;
+    const grid_house_on = importKW > 0.01;
 
-  const v5 = flowVisuals(importKW);
-  rebuildTokens('tok_grid_house', 'l_grid_house', grid_house_on ? v5.count : 0, v5.dur, 'grid');
+    setFlowVisible('l_pv_house',   pv_house_on);
+    setFlowVisible('l_pv_grid',    pv_grid_on);
+    setFlowVisible('l_pv_batt',    pv_batt_on);
+    setFlowVisible('l_batt_house', batt_house_on);
+    setFlowVisible('l_grid_house', grid_house_on);
+
+    setLabel('lab_pv_house',   FLOW_LABELS.pvHome + ' ' + kw(pvToHouse) + ' kW');
+    setLabel('lab_pv_grid',    FLOW_LABELS.pvGrid + ' ' + kw(exportKW) + ' kW');
+    setLabel('lab_pv_batt',    FLOW_LABELS.pvBattery + ' ' + kw(bi) + ' kW');
+    setLabel('lab_batt_house', FLOW_LABELS.batteryHome + ' ' + kw(bo) + ' kW');
+    setLabel('lab_grid_house', FLOW_LABELS.gridHome + ' ' + kw(importKW) + ' kW');
+
+    const v1 = flowVisuals(pvToHouse);
+    rebuildTokens('tok_pv_house','l_pv_house', pv_house_on ? v1.count : 0, v1.dur, 'pv');
+    const v2 = flowVisuals(exportKW);
+    rebuildTokens('tok_pv_grid','l_pv_grid', pv_grid_on ? v2.count : 0, v2.dur, 'pv');
+    const v3 = flowVisuals(bi);
+    rebuildTokens('tok_pv_batt','l_pv_batt', pv_batt_on ? v3.count : 0, v3.dur, 'pv');
+    const v4 = flowVisuals(bo);
+    rebuildTokens('tok_batt_house','l_batt_house', batt_house_on ? v4.count : 0, v4.dur, 'batt');
+    const v5 = flowVisuals(importKW);
+    rebuildTokens('tok_grid_house','l_grid_house', grid_house_on ? v5.count : 0, v5.dur, 'grid');
+  }
 
   // ===== Heute (kWh) =====
   function tv(x){ const value=parseFloat(x); return Number.isFinite(value) ? f2(value) : '–'; }

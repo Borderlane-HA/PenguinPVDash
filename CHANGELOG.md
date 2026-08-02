@@ -1,3 +1,10 @@
+## 1.8.1
+
+- Fixed battery discharge/charge ratio outliers on days without meaningful charging.
+- Daily ratios below 0.05 kWh charge are now shown as unavailable and omitted from the chart.
+- Reworked the optional modern energy-flow diagram with directional arrows, moving flow bars and daily autonomy in the center.
+- Renamed the classic flow option to simply “Standard”.
+
 ## 1.8.0
 
 - Added a statistics submenu with general statistics, battery analysis, and autonomy/self-consumption analysis.
