@@ -1,3 +1,8 @@
+## 1.7.7
+
+- Added sticky column headers to the 30-day dashboard table and the statistics table.
+- Long tables now scroll inside a viewport-sized area, keeping column names visible while preserving horizontal scrolling on small screens.
+
 ## 1.7.6
 
 - Improved energy-flow contrast in the light theme.

@@ -223,7 +223,7 @@ $defaultDevice = pvdash_default_device();
   <!-- ====== Letzte 30 Tage ====== -->
   <div class="card">
     <div class="card-head"><h2><?= th('t18') ?> (kWh)</h2></div>
-    <div class="table-wrap">
+    <div class="table-wrap table-wrap-sticky">
       <table class="fancy">
         <thead>
           <tr>

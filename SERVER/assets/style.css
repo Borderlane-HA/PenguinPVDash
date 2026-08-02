@@ -448,3 +448,30 @@ body[data-theme="light"] #n_batt .bat::after{
   max-width:150px;
   max-height:58px;
 }
+
+
+/* ===== PenguinPVDash 1.7.7 sticky data-table headers ===== */
+/* The dashboard and statistics tables get their own vertical scroll area.
+   This keeps the column labels visible while browsing long date ranges,
+   without interfering with horizontal scrolling on smaller screens. */
+.table-wrap-sticky{
+  position:relative;
+  max-height:min(68vh,760px);
+  overflow:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.table-wrap-sticky table.fancy thead th{
+  position:sticky;
+  top:0;
+  z-index:8;
+  background:var(--header)!important;
+  color:var(--fg)!important;
+  box-shadow:0 1px 0 var(--border),0 8px 16px color-mix(in srgb,var(--bg) 18%,transparent);
+}
+body[data-theme="light"] .table-wrap-sticky table.fancy thead th{
+  box-shadow:0 1px 0 var(--border),0 8px 16px rgba(46,72,112,.12);
+}
+@media(max-width:700px){
+  .table-wrap-sticky{max-height:64vh}
+}

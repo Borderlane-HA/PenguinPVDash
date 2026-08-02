@@ -89,7 +89,7 @@ $monthNames = APP_LANG === 'de'
       <div class='group'><button id='apply' class='button button-primary'><?= th('stats_apply') ?></button></div>
     </div>
 
-    <div class='table-wrap'>
+    <div class='table-wrap table-wrap-sticky'>
       <table class='fancy'>
         <thead>
           <tr>
