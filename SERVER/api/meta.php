@@ -8,7 +8,7 @@ pvdash_require_stats(true);
 
 header('Content-Type: application/json; charset=utf-8');
 $pdo = db();
-$device = (string) ($_GET['device'] ?? 'home');
+$device = (string) ($_GET['device'] ?? pvdash_default_device());
 $st = $pdo->prepare('SELECT MIN(day) AS min_day, MAX(day) AS max_day FROM daily_totals WHERE device=?');
 $st->execute([$device]);
 $row = $st->fetch();

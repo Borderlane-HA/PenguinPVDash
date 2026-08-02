@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        PVDASH_VERSION: "1.6.2"
+        PVDASH_VERSION: "1.6.3"
     container_name: penguinpvdash
     restart: unless-stopped
     ports:
@@ -13,6 +13,8 @@ services:
       TZ: "${TZ:-Europe/Berlin}"
       PVDASH_DEFAULT_LANGUAGE: "${PVDASH_DEFAULT_LANGUAGE:-de}"
       PVDASH_SQLITE: /var/lib/penguinpvdash/pvdash.sqlite
+      PVDASH_RUNTIME_SETTINGS: /var/lib/penguinpvdash/settings.json
+      PVDASH_DEFAULT_DEVICE: "${PVDASH_DEFAULT_DEVICE:-home}"
       PVDASH_FEED_IN_CT: "${PVDASH_FEED_IN_CT:-0}"
       PVDASH_ADMIN_PASSWORD: "${PVDASH_ADMIN_PASSWORD:?Set PVDASH_ADMIN_PASSWORD in .env}"
       PVDASH_GUEST_PASSWORD: "${PVDASH_GUEST_PASSWORD:-}"

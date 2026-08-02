@@ -8,7 +8,7 @@ pvdash_require_stats(true);
 
 header('Content-Type: application/json; charset=utf-8');
 $pdo = db();
-$device = (string) ($_GET['device'] ?? 'home');
+$device = (string) ($_GET['device'] ?? pvdash_default_device());
 $start = (string) ($_GET['start'] ?? '');
 $end = (string) ($_GET['end'] ?? '');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end)) {

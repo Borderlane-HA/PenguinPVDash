@@ -7,7 +7,7 @@ $canViewStats = pvdash_can_view_stats();
 $canViewCompensation = pvdash_can_view_compensation();
 $feedInCt = $canViewCompensation ? (float) pvdash_config('feed_in_ct', 0.0) : 0.0;
 $role = pvdash_role();
-$defaultDevice = array_key_first((array) pvdash_config('api_keys', [])) ?: 'home';
+$defaultDevice = pvdash_default_device();
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars(APP_LANG, ENT_QUOTES, 'UTF-8') ?>">
@@ -117,6 +117,7 @@ $defaultDevice = array_key_first((array) pvdash_config('api_keys', [])) ?: 'home
       <?php if ($canViewStats): ?><a class="button" href="stats.php"><?= th('nav_stats') ?></a><?php endif; ?>
       <?php if (pvdash_is_admin()): ?>
         <a class="button button-primary" href="admin/"><?= th('nav_admin') ?></a>
+        <a class="button" href="admin/settings.php"><?= th('nav_settings') ?></a>
         <a class="button" href="logout.php"><?= th('nav_logout') ?></a>
       <?php else: ?>
         <a class="button" href="login.php?admin=1&next=./"><?= th('nav_admin_login') ?></a>

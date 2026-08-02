@@ -9,7 +9,7 @@ require_once __DIR__ . '/../inc/db.php';
 pvdash_require_admin();
 $pdo = db();
 $devices = pvdash_devices($pdo);
-$device = (string) ($_GET['device'] ?? $_POST['device'] ?? $devices[0]);
+$device = (string) ($_GET['device'] ?? $_POST['device'] ?? pvdash_default_device());
 if (!in_array($device, $devices, true)) {
     $devices[] = $device;
 }
@@ -133,6 +133,7 @@ $csrf = pvdash_csrf_token();
     <nav class="top-actions">
       <a class="button" href="../"><?= th('nav_dashboard') ?></a>
       <?php if (pvdash_can_view_stats()): ?><a class="button" href="../stats.php"><?= th('nav_stats') ?></a><?php endif; ?>
+      <a class="button button-primary" href="settings.php"><?= th('nav_settings') ?></a>
       <a class="button" href="../logout.php"><?= th('nav_logout') ?></a>
     </nav>
   </header>

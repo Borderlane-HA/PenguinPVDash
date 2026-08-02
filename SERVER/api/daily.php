@@ -8,7 +8,7 @@ pvdash_require_view(true);
 
 header('Content-Type: application/json; charset=utf-8');
 $pdo = db();
-$device = (string) ($_GET['device'] ?? 'home');
+$device = (string) ($_GET['device'] ?? pvdash_default_device());
 $maximumDays = pvdash_can_view_stats() ? 3650 : 30;
 $days = max(1, min($maximumDays, (int) ($_GET['days'] ?? 30)));
 $since = date('Y-m-d', time() - ($days - 1) * 86400);

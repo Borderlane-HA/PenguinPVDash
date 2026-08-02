@@ -16,6 +16,7 @@ $PVDASH_CONFIG = [
 
     // Feed-in compensation in ct/kWh.
     'feed_in_ct' => 0.0,
+    'default_device' => '',
 
     // Web access. An empty guest password means public read-only access.
     'admin_password' => '',

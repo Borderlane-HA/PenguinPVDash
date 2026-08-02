@@ -8,7 +8,7 @@ pvdash_require_view(true);
 
 header('Content-Type: application/json; charset=utf-8');
 $pdo = db();
-$device = (string) ($_GET['device'] ?? 'home');
+$device = (string) ($_GET['device'] ?? pvdash_default_device());
 $st = $pdo->prepare('SELECT * FROM samples WHERE device=? ORDER BY ts DESC LIMIT 1');
 $st->execute([$device]);
 $row = $st->fetch();

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config_advanced.php';
+require_once __DIR__ . '/settings_store.php';
 
 function pvdash_env_bool(string $name, bool $default): bool
 {
@@ -29,11 +30,12 @@ function pvdash_env_float(string $name, float $default): float
     return (float) str_replace(',', '.', (string) $value);
 }
 
-// Environment variables override config.local.php. This is used by Docker.
+// Environment variables provide the initial Docker configuration.
 $PVDASH_CONFIG['timezone'] = pvdash_env_string('TZ', (string) $PVDASH_CONFIG['timezone']);
 $PVDASH_CONFIG['language'] = pvdash_env_string('PVDASH_DEFAULT_LANGUAGE', (string) $PVDASH_CONFIG['language']);
 $PVDASH_CONFIG['sqlite_path'] = pvdash_env_string('PVDASH_SQLITE', (string) $PVDASH_CONFIG['sqlite_path']);
 $PVDASH_CONFIG['feed_in_ct'] = pvdash_env_float('PVDASH_FEED_IN_CT', (float) $PVDASH_CONFIG['feed_in_ct']);
+$PVDASH_CONFIG['default_device'] = pvdash_env_string('PVDASH_DEFAULT_DEVICE', (string) $PVDASH_CONFIG['default_device']);
 $PVDASH_CONFIG['admin_password'] = pvdash_env_string('PVDASH_ADMIN_PASSWORD', (string) $PVDASH_CONFIG['admin_password']);
 $PVDASH_CONFIG['guest_password'] = pvdash_env_string('PVDASH_GUEST_PASSWORD', (string) $PVDASH_CONFIG['guest_password']);
 $PVDASH_CONFIG['guest_can_view_stats'] = pvdash_env_bool('PVDASH_GUEST_CAN_VIEW_STATS', (bool) $PVDASH_CONFIG['guest_can_view_stats']);
@@ -46,23 +48,23 @@ if ($apiKeysJson !== false && trim((string) $apiKeysJson) !== '') {
     if (!is_array($decoded) || $decoded === [] || array_is_list($decoded)) {
         throw new RuntimeException('PVDASH_API_KEYS_JSON must be a non-empty JSON object.');
     }
-    $validatedKeys = [];
-    foreach ($decoded as $configuredDevice => $configuredKey) {
-        $configuredDevice = (string) $configuredDevice;
-        $configuredKey = (string) $configuredKey;
-        if (!preg_match('/^[A-Za-z0-9_.:-]{1,64}$/', $configuredDevice) || $configuredKey === '') {
-            throw new RuntimeException('PVDASH_API_KEYS_JSON contains an invalid device ID or empty key.');
-        }
-        $validatedKeys[$configuredDevice] = $configuredKey;
-    }
-    $PVDASH_CONFIG['api_keys'] = $validatedKeys;
+    $PVDASH_CONFIG['api_keys'] = pvdash_validate_api_keys($decoded);
 } else {
     $deviceId = getenv('PVDASH_DEVICE_ID');
     $apiKey = getenv('PVDASH_API_KEY');
     if ($deviceId !== false && $apiKey !== false && $deviceId !== '' && $apiKey !== '') {
-        $PVDASH_CONFIG['api_keys'] = [(string) $deviceId => (string) $apiKey];
+        $PVDASH_CONFIG['api_keys'] = pvdash_validate_api_keys([(string) $deviceId => (string) $apiKey]);
     }
 }
+
+// Settings changed in the administrator UI are stored beside the SQLite file
+// and deliberately override Docker environment variables without a restart.
+$runtimePath = pvdash_runtime_settings_path($PVDASH_CONFIG);
+$runtimeValues = pvdash_runtime_settings_read($runtimePath);
+foreach ($runtimeValues as $key => $value) {
+    $PVDASH_CONFIG[$key] = $value;
+}
+$PVDASH_CONFIG['runtime_settings_path'] = $runtimePath;
 
 function pvdash_config(string $key, mixed $default = null): mixed
 {

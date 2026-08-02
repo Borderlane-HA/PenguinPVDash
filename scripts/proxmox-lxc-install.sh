@@ -286,6 +286,7 @@ return [
     'timezone' => 'Europe/Berlin',
     'language' => $(php_quote "$LANGUAGE"),
     'feed_in_ct' => $FEED_IN_CT,
+    'default_device' => $(php_quote "$DEVICE_ID"),
     'admin_password' => $(php_quote "$ADMIN_PASSWORD"),
     'guest_password' => $(php_quote "$GUEST_PASSWORD"),
     'guest_can_view_stats' => $GUEST_STATS,
@@ -311,6 +312,7 @@ services:
       - "$PORT:80"
     environment:
       PVDASH_SQLITE: /var/lib/penguinpvdash/pvdash.sqlite
+      PVDASH_RUNTIME_SETTINGS: /var/lib/penguinpvdash/settings.json
     volumes:
       - ./data:/var/lib/penguinpvdash
       - ./config.local.php:/var/www/html/inc/config.local.php:ro

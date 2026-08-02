@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.3
+
+- Added an administrator settings page for device IDs and Home Assistant API keys.
+- Multiple API credentials can be added, edited, renamed and removed independently.
+- Added a selectable default dashboard device, allowing `home2` to stay active while imported `home` history remains available.
+- Device renames can optionally migrate existing rows in `samples`, `daily_totals` and `integ_state`.
+- Added administrator and guest password changes from the web interface; passwords are stored as secure hashes.
+- Added guest statistics and compensation permissions plus feed-in compensation editing to the administrator interface.
+- Added browser-side random API-key generation and non-reversible key fingerprints.
+- Administrator changes are stored atomically in persistent `settings.json` and override initial environment or `config.local.php` values without a container restart.
+- SQLite exports remain data-only and intentionally exclude API keys and passwords.
+
 ## 1.6.2
 
 - Added administrator-only SQLite export from the web interface.

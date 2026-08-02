@@ -5,7 +5,7 @@ require_once __DIR__ . '/inc/i18n.php';
 pvdash_require_stats();
 $canViewCompensation = pvdash_can_view_compensation();
 $feedInCt = $canViewCompensation ? (float) pvdash_config('feed_in_ct', 0.0) : 0.0;
-$defaultDevice = array_key_first((array) pvdash_config('api_keys', [])) ?: 'home';
+$defaultDevice = pvdash_default_device();
 $monthNames = APP_LANG === 'de'
     ? ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
     : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -53,7 +53,7 @@ $monthNames = APP_LANG === 'de'
   <div class='card'>
     <div class='stats-header'>
       <div class='brand-title'><img class='brand-icon' src='assets/penguin-pv-icon.png' alt='' width='42' height='42'><h1><?= th('stats_title') ?></h1><span class="status-pill <?= pvdash_is_admin() ? 'status-manual' : 'status-auto' ?>"><?= pvdash_is_admin() ? th('role_admin') : th('role_guest') ?></span></div>
-      <div class='top-actions'><a href='./' class='button'><?= th('stats_back') ?></a><?php if (pvdash_is_admin()): ?><a href='admin/' class='button button-primary'><?= th('nav_admin') ?></a><a href='logout.php' class='button'><?= th('nav_logout') ?></a><?php elseif (pvdash_session_role() === 'guest'): ?><a href='logout.php' class='button'><?= th('nav_logout') ?></a><?php else: ?><a href='login.php?admin=1&amp;next=stats.php' class='button'><?= th('nav_admin_login') ?></a><?php endif; ?></div>
+      <div class='top-actions'><a href='./' class='button'><?= th('stats_back') ?></a><?php if (pvdash_is_admin()): ?><a href='admin/' class='button button-primary'><?= th('nav_admin') ?></a><a href='admin/settings.php' class='button'><?= th('nav_settings') ?></a><a href='logout.php' class='button'><?= th('nav_logout') ?></a><?php elseif (pvdash_session_role() === 'guest'): ?><a href='logout.php' class='button'><?= th('nav_logout') ?></a><?php else: ?><a href='login.php?admin=1&amp;next=stats.php' class='button'><?= th('nav_admin_login') ?></a><?php endif; ?></div>
     </div>
 
     <div class='controls'>

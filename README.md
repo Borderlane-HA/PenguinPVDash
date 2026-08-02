@@ -2,7 +2,7 @@
 
 PenguinPVDash publishes photovoltaic and energy data from Home Assistant to a lightweight, externally hosted dashboard. The Home Assistant custom integration sends the selected sensors to the PHP server at a configurable interval. Multiple independently editable server instances are supported.
 
-> Version 1.6.2 adds administrator-only SQLite export and import with integrity checks, automatic pre-import backups and safe handling of active WAL data.
+> Version 1.6.3 adds administrator-managed device IDs, API keys, dashboard default device, guest permissions and admin/guest passwords. Changes take effect immediately without restarting the container.
 
 ## Features
 
@@ -13,6 +13,7 @@ PenguinPVDash publishes photovoltaic and energy data from Home Assistant to a li
 - Independent guest permissions for statistics and compensation
 - Admin editor for adding, correcting, locking, unlocking and deleting daily totals
 - Administrator-only SQLite export and import with validation and automatic pre-import backup
+- Admin settings for device IDs, API keys, default dashboard device, passwords, compensation and guest permissions
 - Manual corrections are protected from later Home Assistant updates
 - Multiple Home Assistant integration instances and server targets
 - Classic PHP hosting, Docker Compose and Proxmox VE LXC deployment
@@ -62,6 +63,7 @@ PVDASH_GUEST_PASSWORD=
 PVDASH_GUEST_CAN_VIEW_STATS=true
 PVDASH_GUEST_CAN_VIEW_COMPENSATION=false
 PVDASH_FEED_IN_CT=10.45
+PVDASH_DEFAULT_DEVICE=home
 PVDASH_API_KEYS_JSON={"home":"same-api-key-as-in-home-assistant"}
 ```
 
@@ -115,6 +117,7 @@ return [
     'timezone' => 'Europe/Berlin',
     'language' => 'de',
     'feed_in_ct' => 10.45,
+    'default_device' => 'home',
 
     'admin_password' => 'replace-with-a-long-admin-password',
     'guest_password' => '',
@@ -162,6 +165,10 @@ The administrator can:
 - delete incorrect entries
 - export a consistent SQLite backup
 - import a PenguinPVDash SQLite backup after validation
+- change Home Assistant device IDs and API keys
+- choose the default device shown on the dashboard
+- change administrator and guest passwords
+- adjust guest permissions and feed-in compensation
 
 ### Guest
 
@@ -203,6 +210,25 @@ For Docker, the equivalent one-line JSON value is:
 PVDASH_API_KEYS_JSON={"home":"first-key","garage":"second-key"}
 ```
 
+## Administrator settings
+
+Sign in as administrator and open **Settings**. Changes are stored in `settings.json` next to the SQLite database and take effect immediately. The runtime settings override the initial values from `.env` or `config.local.php`.
+
+The settings page can:
+
+- select the default device shown on the dashboard, for example `home2` while imported `home` history remains available
+- add, change, rename or remove API credentials
+- optionally migrate all SQLite rows when a device ID is renamed
+- generate a random API key in the browser
+- change the administrator password and keep the current session active
+- set, change or remove the guest password
+- configure guest access to statistics and compensation
+- change the compensation rate in ct/kWh
+
+API keys are never displayed again. The interface shows only a short SHA-256 fingerprint; leave the key field empty to keep the current key. After changing a device ID or key, update the same values in the matching Home Assistant integration entry.
+
+The runtime settings file contains sensitive API credentials and must be backed up separately. It is intentionally not included in SQLite exports.
+
 ## SQLite backup and restore
 
 Sign in as administrator and open **Edit data**. The **SQLite database** section provides:
@@ -216,8 +242,8 @@ For Docker and Proxmox installations, uploads up to 512 MB are enabled by the in
 
 The private configuration is not part of a SQLite export. Back it up separately:
 
-- Docker/Proxmox: `.env` or `config.local.php`
-- classic hosting: `SERVER/inc/config.local.php`
+- Docker/Proxmox: persistent `data/settings.json` plus the initial `.env` or `config.local.php`
+- classic hosting: `SERVER/data/settings.json` plus `SERVER/inc/config.local.php`
 
 ## Maintenance
 

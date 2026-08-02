@@ -53,21 +53,31 @@ function pvdash_role(): ?string
     return ((string) pvdash_config('guest_password', '')) === '' ? 'guest' : null;
 }
 
+function pvdash_set_session_role(string $role): void
+{
+    if (!in_array($role, ['admin', 'guest'], true)) {
+        throw new InvalidArgumentException('Invalid role.');
+    }
+    $configuredPassword = (string) pvdash_config(
+        $role === 'admin' ? 'admin_password' : 'guest_password',
+        ''
+    );
+    session_regenerate_id(true);
+    $_SESSION['pvdash_role'] = $role;
+    $_SESSION['pvdash_auth_fingerprint'] = hash('sha256', $role . '|' . $configuredPassword);
+}
+
 function pvdash_login(string $password): ?string
 {
     $admin = (string) pvdash_config('admin_password', '');
     $guest = (string) pvdash_config('guest_password', '');
 
     if (pvdash_password_matches($admin, $password)) {
-        session_regenerate_id(true);
-        $_SESSION['pvdash_role'] = 'admin';
-        $_SESSION['pvdash_auth_fingerprint'] = hash('sha256', 'admin|' . $admin);
+        pvdash_set_session_role('admin');
         return 'admin';
     }
     if ($guest !== '' && pvdash_password_matches($guest, $password)) {
-        session_regenerate_id(true);
-        $_SESSION['pvdash_role'] = 'guest';
-        $_SESSION['pvdash_auth_fingerprint'] = hash('sha256', 'guest|' . $guest);
+        pvdash_set_session_role('guest');
         return 'guest';
     }
     return null;
