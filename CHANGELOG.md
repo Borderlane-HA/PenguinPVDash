@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.1
+
+- Fixed dark bands above and below light pages by applying theme variables to the document root.
+- Corrected primary, navigation, checkbox and form colors in the light theme.
+- Redesigned the header as separated rounded brand and navigation surfaces with improved logo spacing.
+- Reduced the README to concise HACS, Docker and Proxmox setup and update instructions.
+
 ## 1.7.0
 
 - Removed the obsolete “More / Open statistics” card from the main dashboard.

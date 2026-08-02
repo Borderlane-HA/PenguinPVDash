@@ -75,6 +75,11 @@ function pvdash_accent_color(): string
     return preg_match('/^#[0-9A-Fa-f]{6}$/', $color) === 1 ? strtolower($color) : '#4e8cff';
 }
 
+function pvdash_html_attributes(): string
+{
+    return 'data-theme="' . htmlspecialchars(pvdash_theme(), ENT_QUOTES, 'UTF-8') . '"';
+}
+
 function pvdash_body_attributes(): string
 {
     $metricColors = pvdash_metric_colors();

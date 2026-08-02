@@ -64,6 +64,7 @@ input,select{width:100%;min-height:38px;padding:8px 10px;border:1px solid var(--
 
 /* ===== PenguinPVDash 1.7 visual system ===== */
 :root,
+html[data-theme="standard"],
 body[data-theme="standard"]{
   --bg:#081021;
   --fg:#edf4ff;
@@ -79,6 +80,7 @@ body[data-theme="standard"]{
   --shadow:0 18px 48px rgba(0,0,0,.26);
   --danger:#ff6b7d;
 }
+html[data-theme="dark"],
 body[data-theme="dark"]{
   --bg:#090a0e;
   --fg:#f3f5f8;
@@ -94,6 +96,7 @@ body[data-theme="dark"]{
   --shadow:0 18px 52px rgba(0,0,0,.42);
   --danger:#ff7185;
 }
+html[data-theme="light"],
 body[data-theme="light"]{
   --bg:#f2f5fb;
   --fg:#172238;
@@ -223,3 +226,104 @@ body[data-theme="light"] .status-auto{color:#12683d}body[data-theme="light"] .st
 @media(max-width:1150px){.device-migration-form{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-color-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:900px){.appearance-main{grid-template-columns:1fr}.appearance-preview{position:static}.appearance-fields{grid-template-columns:1fr}.appearance-fields>label:last-child{grid-column:auto}.topbar,.stats-header{position:static}}
 @media(max-width:700px){.metric-color-grid,.device-migration-form{grid-template-columns:1fr}.inline-actions{display:grid}.inline-actions .button{width:100%}.device-table td:last-child,.backup-table td:last-child{min-width:190px}}
+
+
+/* ===== PenguinPVDash 1.7.1 theme and header refinements ===== */
+html,body{min-height:100%}
+html{background:var(--bg)}
+body{min-height:100vh;display:flow-root;background-color:var(--bg)}
+
+/* Floating header surfaces instead of one hard rectangular strip. */
+.topbar,.stats-header{
+  position:sticky;
+  top:12px;
+  z-index:20;
+  padding:0;
+  margin-bottom:18px;
+  background:transparent;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+.topbar>.brand-title,
+.topbar>div:first-child,
+.stats-header>.brand-title,
+.topbar>.top-actions,
+.stats-header>.top-actions{
+  border:1px solid color-mix(in srgb,var(--border) 82%,transparent);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--card) 90%,transparent);
+  box-shadow:0 12px 32px rgba(0,0,0,.12);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+.topbar>.brand-title,.stats-header>.brand-title{padding:9px 12px}
+.topbar>div:first-child{padding:9px 12px;min-width:0}
+.topbar>div:first-child>.brand-title{padding:0}
+.topbar>.top-actions,.stats-header>.top-actions{padding:7px}
+.brand-title{gap:11px}
+.brand-icon{
+  width:48px;
+  height:48px;
+  padding:5px;
+  flex:0 0 48px;
+  border:1px solid var(--border-soft);
+  border-radius:14px;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  object-fit:contain;
+  filter:drop-shadow(0 5px 10px rgba(0,0,0,.16));
+}
+.brand-title h1{font-size:22px;letter-spacing:-.02em}
+.topbar .muted{margin-top:3px}
+
+/* Theme-aware controls. The previous light-theme button rule was more
+   specific than .button-primary and made save/active buttons almost white. */
+body[data-theme="light"] .button:not(.button-primary):not(.button-danger){
+  background:linear-gradient(145deg,#fff,var(--surface-2));
+  color:var(--fg);
+  border-color:var(--border);
+}
+body[data-theme="light"] .button-primary,
+body[data-theme="light"] .button-primary:visited{
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 82%,white),var(--accent));
+  border-color:color-mix(in srgb,var(--accent) 72%,#fff);
+  color:#fff;
+}
+body[data-theme="light"] .button-primary:hover{
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 70%,white),color-mix(in srgb,var(--accent) 88%,#172238));
+  color:#fff;
+}
+.button:disabled,.button[disabled]{opacity:.58;cursor:not-allowed;transform:none;box-shadow:none}
+body[data-theme="light"] .button-primary:disabled,
+body[data-theme="light"] .button-primary[disabled]{
+  background:color-mix(in srgb,var(--accent) 62%,#dfe7f4);
+  border-color:color-mix(in srgb,var(--accent) 48%,#dfe7f4);
+  color:#fff;
+}
+
+.settings-checkbox,.checkbox-label.settings-checkbox{
+  background:var(--input);
+  color:var(--fg)!important;
+  border-color:var(--border);
+}
+.checkbox-label{color:var(--fg)!important}
+.checkbox-label input[type="checkbox"]{accent-color:var(--accent)}
+body[data-theme="light"] .settings-checkbox,
+body[data-theme="light"] .checkbox-label.settings-checkbox{background:#fff}
+
+/* Keep navigation readable and consistent in every theme. */
+.top-actions .button{white-space:nowrap}
+body[data-theme="light"] .top-actions .button:not(.button-primary):not(.button-danger){color:#285fae}
+body[data-theme="light"] .top-actions .button-primary{color:#fff}
+
+/* Prevent theme-colored page gaps at the viewport edges. */
+.wrap{margin-top:18px;margin-bottom:28px}
+
+@media(max-width:900px){
+  .topbar,.stats-header{top:0;position:static;gap:10px}
+  .topbar>.brand-title,.stats-header>.brand-title,.topbar>div:first-child,.topbar>.top-actions,.stats-header>.top-actions{width:100%}
+  .topbar>.top-actions,.stats-header>.top-actions{justify-content:flex-start}
+}
+@media(max-width:620px){
+  .brand-icon{width:42px;height:42px;flex-basis:42px}
+  .brand-title h1{font-size:19px}
+}

@@ -10,7 +10,7 @@ $role = pvdash_role();
 $defaultDevice = pvdash_default_device();
 ?>
 <!doctype html>
-<html lang="<?= htmlspecialchars(APP_LANG, ENT_QUOTES, 'UTF-8') ?>">
+<html lang="<?= htmlspecialchars(APP_LANG, ENT_QUOTES, 'UTF-8') ?>" <?= pvdash_html_attributes() ?>>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
