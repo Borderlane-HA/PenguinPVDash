@@ -117,6 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new InvalidArgumentException(t('settings_invalid_feed_in'));
             }
 
+            $capacityRaw = str_replace(',', '.', trim((string) ($_POST['battery_capacity_kwh'] ?? '0')));
+            if ($capacityRaw === '' || !is_numeric($capacityRaw)) {
+                throw new InvalidArgumentException(t('settings_invalid_battery_capacity'));
+            }
+            $batteryCapacity = (float) $capacityRaw;
+            if ($batteryCapacity < 0 || $batteryCapacity > 10000) {
+                throw new InvalidArgumentException(t('settings_invalid_battery_capacity'));
+            }
+
             $backupRetention = (int) ($_POST['backup_retention'] ?? 5);
             if ($backupRetention < 1 || $backupRetention > 25) {
                 throw new InvalidArgumentException(t('settings_invalid_backup_retention'));
@@ -126,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'language' => $language,
                 'default_device' => $defaultDevice,
                 'feed_in_ct' => $feedIn,
+                'battery_capacity_kwh' => $batteryCapacity,
                 'backup_retention' => $backupRetention,
                 'guest_can_view_stats' => isset($_POST['guest_can_view_stats']),
                 'guest_can_view_compensation' => isset($_POST['guest_can_view_compensation']),
@@ -145,10 +155,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new InvalidArgumentException(t('settings_site_title_invalid'));
             }
             $theme = (string) ($_POST['theme'] ?? 'standard');
+            $flowDiagramStyle = (string) ($_POST['flow_diagram_style'] ?? 'standard');
             $accent = strtolower((string) ($_POST['accent_color'] ?? '#4e8cff'));
             $density = (string) ($_POST['table_density'] ?? 'comfortable');
             if (!in_array($theme, ['standard', 'dark', 'light'], true)) {
                 throw new InvalidArgumentException(t('settings_theme_invalid'));
+            }
+            if (!in_array($flowDiagramStyle, ['standard', 'modern'], true)) {
+                throw new InvalidArgumentException(t('settings_flow_style_invalid'));
             }
             if (!pvdash_valid_hex_color($accent)) {
                 throw new InvalidArgumentException(t('settings_color_invalid'));
@@ -170,6 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $patch = [
                 'site_title' => $siteTitle,
                 'theme' => $theme,
+                'flow_diagram_style' => $flowDiagramStyle,
                 'accent_color' => $accent,
                 'table_density' => $density,
                 'highlight_extremes' => isset($_POST['highlight_extremes']),
@@ -195,6 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             pvdash_runtime_settings_update([
                 'site_title' => 'PenguinPVDash',
                 'theme' => 'standard',
+                'flow_diagram_style' => 'standard',
                 'accent_color' => '#4e8cff',
                 'table_density' => 'comfortable',
                 'highlight_extremes' => true,
@@ -389,6 +405,10 @@ $metricLabels = [
         <input type="text" inputmode="decimal" name="feed_in_ct" value="<?= htmlspecialchars(number_format((float) pvdash_config('feed_in_ct', 0), 3, '.', ''), ENT_QUOTES, 'UTF-8') ?>" required>
         <span class="field-help"><?= th('settings_feed_in_help') ?></span>
       </label>
+      <label><?= th('settings_battery_capacity') ?>
+        <input type="text" inputmode="decimal" name="battery_capacity_kwh" value="<?= htmlspecialchars(number_format((float) pvdash_config('battery_capacity_kwh', 0), 3, '.', ''), ENT_QUOTES, 'UTF-8') ?>" required>
+        <span class="field-help"><?= th('settings_battery_capacity_help') ?></span>
+      </label>
       <label><?= th('settings_backup_retention') ?>
         <input type="number" name="backup_retention" min="1" max="25" value="<?= (int) pvdash_config('backup_retention', 5) ?>" required>
         <span class="field-help"><?= th('settings_backup_retention_help') ?></span>
@@ -408,6 +428,7 @@ $metricLabels = [
         <div class="settings-panel appearance-fields">
           <label><?= th('settings_site_title') ?><input type="text" name="site_title" maxlength="80" value="<?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?>" required></label>
           <label><?= th('settings_theme') ?><select name="theme" id="theme-select"><option value="standard" <?= pvdash_theme() === 'standard' ? 'selected' : '' ?>><?= th('settings_theme_standard') ?></option><option value="dark" <?= pvdash_theme() === 'dark' ? 'selected' : '' ?>><?= th('settings_theme_dark') ?></option><option value="light" <?= pvdash_theme() === 'light' ? 'selected' : '' ?>><?= th('settings_theme_light') ?></option></select></label>
+          <label><?= th('settings_flow_diagram_style') ?><select name="flow_diagram_style"><option value="standard" <?= pvdash_flow_diagram_style() === 'standard' ? 'selected' : '' ?>><?= th('settings_flow_standard') ?></option><option value="modern" <?= pvdash_flow_diagram_style() === 'modern' ? 'selected' : '' ?>><?= th('settings_flow_modern') ?></option></select><span class="field-help"><?= th('settings_flow_diagram_help') ?></span></label>
           <label><?= th('settings_accent_color') ?><div class="color-input-row"><input type="color" name="accent_color" value="<?= htmlspecialchars(pvdash_accent_color(), ENT_QUOTES, 'UTF-8') ?>"><span class="color-value"><?= htmlspecialchars(pvdash_accent_color(), ENT_QUOTES, 'UTF-8') ?></span></div></label>
           <label><?= th('settings_table_density') ?><select name="table_density"><option value="comfortable" <?= pvdash_table_density() === 'comfortable' ? 'selected' : '' ?>><?= th('settings_density_comfortable') ?></option><option value="compact" <?= pvdash_table_density() === 'compact' ? 'selected' : '' ?>><?= th('settings_density_compact') ?></option></select></label>
           <label class="checkbox-label settings-checkbox"><input type="checkbox" name="highlight_extremes" value="1" <?= (bool) pvdash_config('highlight_extremes', true) ? 'checked' : '' ?>><span><?= th('settings_highlight_extremes') ?></span></label>

@@ -58,7 +58,7 @@ docker compose up -d
 
 ## Administration
 
-The admin area provides data correction, device-ID management, SQLite import/export and backups, API-key and password settings, guest permissions, themes, dashboard language, custom branding and statistics. Guests are read-only.
+The admin area provides data correction, device-ID management, SQLite import/export and backups, API-key and password settings, guest permissions, themes, dashboard language, custom branding and statistics. The statistics area includes general, battery, autonomy and self-consumption analysis with selectable date ranges and charts. The classic energy-flow diagram remains available alongside a new modern design. Guests are read-only.
 
 PenguinPVDash is under active development. Feedback and issue reports are welcome.
 

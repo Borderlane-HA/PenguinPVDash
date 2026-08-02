@@ -1,6 +1,6 @@
 FROM php:8.3-apache
 
-ARG PVDASH_VERSION=1.7.4
+ARG PVDASH_VERSION=1.8.0
 LABEL org.opencontainers.image.title="PenguinPVDash" \
       org.opencontainers.image.description="Shareable photovoltaic dashboard for Home Assistant" \
       org.opencontainers.image.source="https://github.com/Borderlane-HA/PenguinPVDash" \

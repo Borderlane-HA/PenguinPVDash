@@ -44,7 +44,7 @@ if ($PVDASH_REQUIRE_AUTH && $authenticatedDevice !== $device) {
 echo json_encode([
     'ok' => true,
     'service' => 'PenguinPVDash',
-    'version' => (string) (getenv('PVDASH_VERSION') ?: '1.7.4'),
+    'version' => (string) (getenv('PVDASH_VERSION') ?: '1.8.0'),
     'device' => $device,
     'authentication_verified' => true,
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

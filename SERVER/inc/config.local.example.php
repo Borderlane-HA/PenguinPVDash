@@ -7,6 +7,7 @@ return [
     'timezone' => 'Europe/Berlin',
     'language' => 'de',
     'feed_in_ct' => 10.45,
+    'battery_capacity_kwh' => 11.2,
     'default_device' => 'home',
 
     'admin_password' => 'replace-with-a-strong-admin-password',

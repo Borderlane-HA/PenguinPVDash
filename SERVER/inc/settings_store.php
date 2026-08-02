@@ -77,6 +77,14 @@ function pvdash_validate_runtime_settings(array $settings): array
         $validated['feed_in_ct'] = $value;
     }
 
+    if (array_key_exists('battery_capacity_kwh', $settings)) {
+        $value = (float) str_replace(',', '.', (string) $settings['battery_capacity_kwh']);
+        if (!is_finite($value) || $value < 0 || $value > 10000) {
+            throw new InvalidArgumentException('Battery capacity is outside the allowed range.');
+        }
+        $validated['battery_capacity_kwh'] = $value;
+    }
+
     foreach (['guest_can_view_stats', 'guest_can_view_compensation', 'require_ingest_auth'] as $key) {
         if (array_key_exists($key, $settings)) {
             $validated[$key] = (bool) $settings[$key];
@@ -114,6 +122,14 @@ function pvdash_validate_runtime_settings(array $settings): array
             throw new InvalidArgumentException('Invalid theme.');
         }
         $validated['theme'] = $theme;
+    }
+
+    if (array_key_exists('flow_diagram_style', $settings)) {
+        $style = (string) $settings['flow_diagram_style'];
+        if (!in_array($style, ['standard', 'modern'], true)) {
+            throw new InvalidArgumentException('Invalid flow diagram style.');
+        }
+        $validated['flow_diagram_style'] = $style;
     }
 
     if (array_key_exists('accent_color', $settings)) {

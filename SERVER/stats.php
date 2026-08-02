@@ -61,6 +61,8 @@ $monthNames = APP_LANG === 'de'
       <?php pvdash_render_navigation('stats'); ?>
     </div>
 
+    <?php pvdash_render_statistics_subnav('overview'); ?>
+
     <div class='controls'>
       <div class='group'><label for='device'><?= th('stats_device') ?></label><select id='device'><?php foreach ($devices as $device): ?><option value='<?= htmlspecialchars($device, ENT_QUOTES, 'UTF-8') ?>' <?= $device === $defaultDevice ? 'selected' : '' ?>><?= htmlspecialchars($device, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select></div>
       <div class='group'>

@@ -16,11 +16,13 @@ $PVDASH_CONFIG = [
 
     // Feed-in compensation in ct/kWh.
     'feed_in_ct' => 0.0,
+    'battery_capacity_kwh' => 0.0,
     'default_device' => '',
 
     // Appearance and branding.
     'site_title' => 'PenguinPVDash',
     'theme' => 'standard',
+    'flow_diagram_style' => 'standard',
     'accent_color' => '#4e8cff',
     'table_density' => 'comfortable',
     'highlight_extremes' => true,

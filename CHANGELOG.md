@@ -1,3 +1,11 @@
+## 1.8.0
+
+- Added a statistics submenu with general statistics, battery analysis, and autonomy/self-consumption analysis.
+- Added range-aware battery KPIs, tables, and charts, including configurable battery capacity and equivalent full-cycle estimates.
+- Added weighted autonomy and self-consumption KPIs, daily tables, trend charts, and energy-distribution charts.
+- Added a second modern energy-flow visualization while keeping the existing diagram as the default.
+- Added an administrator setting to switch between the standard and modern flow diagram.
+
 ## 1.7.7
 
 - Added sticky column headers to the 30-day dashboard table and the statistics table.

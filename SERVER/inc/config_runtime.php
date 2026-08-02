@@ -35,6 +35,7 @@ $PVDASH_CONFIG['timezone'] = pvdash_env_string('TZ', (string) $PVDASH_CONFIG['ti
 $PVDASH_CONFIG['language'] = pvdash_env_string('PVDASH_DEFAULT_LANGUAGE', (string) $PVDASH_CONFIG['language']);
 $PVDASH_CONFIG['sqlite_path'] = pvdash_env_string('PVDASH_SQLITE', (string) $PVDASH_CONFIG['sqlite_path']);
 $PVDASH_CONFIG['feed_in_ct'] = pvdash_env_float('PVDASH_FEED_IN_CT', (float) $PVDASH_CONFIG['feed_in_ct']);
+$PVDASH_CONFIG['battery_capacity_kwh'] = pvdash_env_float('PVDASH_BATTERY_CAPACITY_KWH', (float) $PVDASH_CONFIG['battery_capacity_kwh']);
 $PVDASH_CONFIG['default_device'] = pvdash_env_string('PVDASH_DEFAULT_DEVICE', (string) $PVDASH_CONFIG['default_device']);
 $PVDASH_CONFIG['admin_password'] = pvdash_env_string('PVDASH_ADMIN_PASSWORD', (string) $PVDASH_CONFIG['admin_password']);
 $PVDASH_CONFIG['guest_password'] = pvdash_env_string('PVDASH_GUEST_PASSWORD', (string) $PVDASH_CONFIG['guest_password']);

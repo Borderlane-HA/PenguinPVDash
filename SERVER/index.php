@@ -3,11 +3,13 @@ declare(strict_types=1);
 require_once __DIR__ . '/inc/web_auth.php';
 require_once __DIR__ . '/inc/i18n.php';
 require_once __DIR__ . '/inc/ui.php';
+require_once __DIR__ . '/inc/flow.php';
 pvdash_require_view();
 $canViewCompensation = pvdash_can_view_compensation();
 $feedInCt = $canViewCompensation ? (float) pvdash_config('feed_in_ct', 0.0) : 0.0;
 $role = pvdash_role();
 $defaultDevice = pvdash_default_device();
+$flowDiagramStyle = pvdash_flow_diagram_style();
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars(APP_LANG, ENT_QUOTES, 'UTF-8') ?>" <?= pvdash_html_attributes() ?>>
@@ -112,90 +114,8 @@ $defaultDevice = pvdash_default_device();
     <?php pvdash_render_navigation('dashboard'); ?>
   </header>
 
-  <!-- ====== Flow (mit animierten Kreisen) ====== -->
-  <div class="card">
-    <div class="flowwrap">
-      <div class="flow">
-        <svg viewBox="0 0 900 260" preserveAspectRatio="none">
-          <!-- Linien -->
-          <path id="l_pv_house"   d="M160,50 C360,50 540,50 740,50"   stroke="#6be29f" stroke-width="3" fill="none"></path>
-          <path id="l_pv_grid"    d="M160,70 C360,110 540,190 740,230" stroke="#6be29f" stroke-width="3" fill="none"></path>
-          <path id="l_pv_batt"    d="M130,70 C220,120 220,200 130,210" stroke="#6be29f" stroke-width="3" fill="none"></path>
-          <path id="l_batt_house" d="M90,210  C320,180 520,90  740,50"  stroke="#ffd480" stroke-width="3" fill="none"></path>
-          <path id="l_grid_house" d="M740,230 C700,200 700,80 740,50" stroke="#89b4ff" stroke-width="3" fill="none"></path>
-
-          <!-- Token-Gruppen -->
-          <g id="tok_pv_house"></g>
-          <g id="tok_pv_grid"></g>
-          <g id="tok_pv_batt"></g>
-          <g id="tok_batt_house"></g>
-          <g id="tok_grid_house"></g>
-        </svg>
-
-        <!-- Knoten: PV -->
-        <div class="node" id="n_pv">
-          <div class="ico ico-pv" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="4.5" stroke="#25c77a" stroke-width="2"/>
-              <g stroke="#25c77a" stroke-width="2" stroke-linecap="round">
-                <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
-                <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
-                <line x1="4.2" y1="4.2" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.8" y2="19.8"/>
-                <line x1="17.7" y1="6.3" x2="19.8" y2="4.2"/><line x1="4.2" y1="19.8" x2="6.3" y2="17.7"/>
-              </g>
-            </svg>
-          </div>
-          <div>
-            <h3><?= th('t1') ?></h3>
-            <div class="sub"><span id="pv_now">0,0 kW</span></div>
-          </div>
-        </div>
-
-        <!-- Knoten: Haus -->
-        <div class="node" id="n_house">
-          <div class="ico ico-house" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M3 11.5L12 4l9 7.5" stroke="#5a8cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5.5 10.5V20h13V10.5" stroke="#5a8cff" stroke-width="2" stroke-linejoin="round"/>
-              <rect x="10" y="13" width="4" height="4.5" stroke="#5a8cff" stroke-width="2"/>
-            </svg>
-          </div>
-          <div>
-            <h3><?= th('t2') ?></h3>
-            <div class="sub"><span id="cons_now">0,0 kW</span></div>
-          </div>
-        </div>
-
-        <!-- Knoten: Netz -->
-        <div class="node" id="n_grid">
-          <div class="ico ico-grid" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 2v20" stroke="#f4a84a" stroke-width="2" stroke-linecap="round"/>
-              <path d="M4 7h16M6 10h12M8 13h8M10 16h4" stroke="#f4a84a" stroke-width="2" stroke-linecap="round"/>
-              <path d="M12 2l6 5-6 3-6-3 6-5z" stroke="#f4a84a" stroke-width="2" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div>
-            <h3><?= th('t6') ?></h3>
-            <div class="sub">
-              <?= th('t7') ?>: <span id="grid_import_now">0,0</span> kW ·
-              <?= th('t8') ?>: <span id="export_now">0,0</span> kW
-            </div>
-          </div>
-        </div>
-
-        <!-- Knoten: Batterie -->
-        <div class="node" id="n_batt">
-          <div class="bat" id="bat_icon"><div class="fill" style="width:0%"></div></div>
-          <div>
-            <h3><?= th('t3') ?> <span id="soc_txt">0%</span></h3>
-            <div class="sub"><?= th('t4') ?>: <span id="b_in_now">0,0</span> kW · <?= th('t5') ?>: <span id="b_out_now">0,0</span> kW</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
+  <!-- ====== Live energy flow ====== -->
+  <?php pvdash_render_energy_flow($flowDiagramStyle); ?>
 
   <!-- ====== Heute (Tageswerte kWh) ====== -->
   <div class="card">
@@ -253,6 +173,13 @@ const DEFAULT_DEVICE = <?= json_encode($defaultDevice, JSON_UNESCAPED_UNICODE | 
 const NUMBER_LOCALE = <?= json_encode(APP_LANG === 'de' ? 'de-DE' : 'en-US') ?>;
 const HIGHLIGHT_EXTREMES = <?= (bool) pvdash_config('highlight_extremes', true) ? 'true' : 'false' ?>;
 const METRIC_COLORS = <?= json_encode(pvdash_metric_colors(), JSON_UNESCAPED_SLASHES) ?>;
+const FLOW_LABELS = <?= json_encode([
+  'pvHome' => t('flow_pv_home'),
+  'pvGrid' => t('flow_pv_grid'),
+  'pvBattery' => t('flow_pv_battery'),
+  'batteryHome' => t('flow_battery_home'),
+  'gridHome' => t('flow_grid_home'),
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
 /* ===== Helpers ===== */
 function f2(v){ return (Math.round((v||0)*100)/100).toLocaleString(NUMBER_LOCALE); }
@@ -348,11 +275,11 @@ async function refreshLive(){
   setFlowVisible('l_grid_house', grid_house_on);
 
   // (Optionale) Labels
-  setLabel('lab_pv_house',   'PV→Haus '     + kw(pvToHouse) + ' kW');
-  setLabel('lab_pv_grid',    'PV→Netz '     + kw(exportKW) + ' kW');
-  setLabel('lab_pv_batt',    'PV→Batterie ' + kw(bi)       + ' kW');
-  setLabel('lab_batt_house', 'Batterie→Haus '+ kw(bo)      + ' kW');
-  setLabel('lab_grid_house', 'Netz→Haus ' + kw(importKW) + ' kW');
+  setLabel('lab_pv_house',   FLOW_LABELS.pvHome + ' ' + kw(pvToHouse) + ' kW');
+  setLabel('lab_pv_grid',    FLOW_LABELS.pvGrid + ' ' + kw(exportKW) + ' kW');
+  setLabel('lab_pv_batt',    FLOW_LABELS.pvBattery + ' ' + kw(bi) + ' kW');
+  setLabel('lab_batt_house', FLOW_LABELS.batteryHome + ' ' + kw(bo) + ' kW');
+  setLabel('lab_grid_house', FLOW_LABELS.gridHome + ' ' + kw(importKW) + ' kW');
 
   // Token-Animation
   const v1 = flowVisuals(pvToHouse);

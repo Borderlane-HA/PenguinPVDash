@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        PVDASH_VERSION: "1.7.4"
+        PVDASH_VERSION: "1.8.0"
     container_name: penguinpvdash
     restart: unless-stopped
     ports:
@@ -16,6 +16,7 @@ services:
       PVDASH_RUNTIME_SETTINGS: /var/lib/penguinpvdash/settings.json
       PVDASH_DEFAULT_DEVICE: "${PVDASH_DEFAULT_DEVICE:-home}"
       PVDASH_FEED_IN_CT: "${PVDASH_FEED_IN_CT:-0}"
+      PVDASH_BATTERY_CAPACITY_KWH: "${PVDASH_BATTERY_CAPACITY_KWH:-0}"
       PVDASH_ADMIN_PASSWORD: "${PVDASH_ADMIN_PASSWORD:?Set PVDASH_ADMIN_PASSWORD in .env}"
       PVDASH_GUEST_PASSWORD: "${PVDASH_GUEST_PASSWORD:-}"
       PVDASH_GUEST_CAN_VIEW_STATS: "${PVDASH_GUEST_CAN_VIEW_STATS:-true}"

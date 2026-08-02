@@ -69,6 +69,18 @@ function pvdash_table_density(): string
     return in_array($density, ['comfortable', 'compact'], true) ? $density : 'comfortable';
 }
 
+function pvdash_flow_diagram_style(): string
+{
+    $style = (string) pvdash_config('flow_diagram_style', 'standard');
+    return in_array($style, ['standard', 'modern'], true) ? $style : 'standard';
+}
+
+function pvdash_battery_capacity_kwh(): float
+{
+    $capacity = (float) pvdash_config('battery_capacity_kwh', 0.0);
+    return is_finite($capacity) && $capacity > 0 ? $capacity : 0.0;
+}
+
 function pvdash_accent_color(): string
 {
     $color = (string) pvdash_config('accent_color', '#4e8cff');
@@ -167,6 +179,22 @@ function pvdash_render_navigation(string $active, string $root = ''): void
         }
     }
     pvdash_render_language_switch();
+    echo '</nav>';
+}
+
+function pvdash_render_statistics_subnav(string $active, string $root = ''): void
+{
+    $links = [
+        'overview' => [$root . 'stats.php', 'stats_nav_overview'],
+        'battery' => [$root . 'battery.php', 'stats_nav_battery'],
+        'autarky' => [$root . 'autarky.php', 'stats_nav_autarky'],
+    ];
+
+    echo '<nav class="stats-subnav" aria-label="' . th('stats_subnav_label') . '">';
+    foreach ($links as $key => [$href, $label]) {
+        $class = 'stats-subnav-link' . ($active === $key ? ' is-active' : '');
+        echo '<a class="' . $class . '" href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '">' . th($label) . '</a>';
+    }
     echo '</nav>';
 }
 
