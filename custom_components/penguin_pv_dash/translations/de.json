@@ -4,65 +4,122 @@
     "step": {
       "user": {
         "title": "Instanz konfigurieren",
-        "description": "Hinterlege den PenguinPVDash-Server und ordne deine Home-Assistant-Energiesensoren zu. Die Serveradresse kann mit oder ohne `/api/ingest.php` eingegeben werden.",
+        "description": "Verbinde Home Assistant mit dem PenguinPVDash-Server und ordne die passenden Energie-Sensoren zu.",
+        "data": {
+          "instance_name": "Name dieser Instanz",
+          "server_url": "Adresse des PenguinPVDash-Servers",
+          "api_key": "API-Schlüssel",
+          "device_id": "Geräte-ID / Datenquellen-ID",
+          "interval": "Übertragungsintervall (Minuten)",
+          "output_unit": "Einheit der Live-Leistungssensoren",
+          "verify_server": "Serververbindung beim Speichern prüfen",
+          "pv_entity": "PV-Erzeugungsleistung aktuell",
+          "consumption_entity": "Hausverbrauchsleistung aktuell",
+          "feedin_entity": "Netzeinspeiseleistung aktuell",
+          "grid_import_entity": "Netzbezugsleistung aktuell",
+          "batt_soc_entity": "Batterieladezustand (SoC)",
+          "batt_charge_entity": "Batterieladeleistung aktuell",
+          "batt_discharge_entity": "Batterieentladeleistung aktuell",
+          "pv_total_kwh_entity": "PV-Erzeugung heute (kWh)",
+          "consumption_total_kwh_entity": "Hausverbrauch heute (kWh)",
+          "feedin_total_kwh_entity": "Netzeinspeisung heute (kWh)",
+          "grid_import_total_kwh_entity": "Netzbezug heute (kWh)",
+          "batt_in_total_kwh_entity": "Batterieladung heute (kWh)",
+          "batt_out_total_kwh_entity": "Batterieentladung heute (kWh)"
+        },
+        "data_description": {
+          "instance_name": "Frei wählbarer Name für diesen Integrationseintrag, zum Beispiel „PV Haus“ oder „Testserver“.",
+          "server_url": "Nur die Serveradresse genügt, zum Beispiel `http://10.10.4.122:8092`. `/api/ingest.php` wird automatisch ergänzt. Eine vollständige Ingest-URL wird ebenfalls akzeptiert.",
+          "api_key": "Muss mit dem API-Schlüssel übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+          "device_id": "Ordnet die übertragenen Daten einer Datenquelle zu, zum Beispiel `home` oder `home2`. Muss mit der Geräte-ID auf dem Server übereinstimmen.",
+          "interval": "Wie oft Home Assistant aktuelle Werte überträgt. Eine Minute wird empfohlen.",
+          "output_unit": "Wähle die Einheit, in der die unten ausgewählten aktuellen Leistungssensoren liefern: W oder kW.",
+          "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Schlüssel, ohne einen Messwert zu speichern. Nur deaktivieren, wenn der Server vorübergehend offline ist.",
+          "pv_entity": "Gesamte aktuelle PV-Leistung. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+          "consumption_entity": "Gesamter aktueller Hausverbrauch. Bei zusätzlichem Balkonkraftwerk den bereits in Home Assistant berechneten Gesamt-/Bruttoverbrauch auswählen.",
+          "feedin_entity": "Aktuelle Leistung, die ins öffentliche Netz eingespeist wird.",
+          "grid_import_entity": "Aktuelle Leistung, die aus dem öffentlichen Netz bezogen wird.",
+          "batt_soc_entity": "Aktueller Ladezustand des Speichers in Prozent.",
+          "batt_charge_entity": "Aktuelle Leistung, mit der die Batterie geladen wird.",
+          "batt_discharge_entity": "Aktuelle Leistung, mit der die Batterie entladen wird.",
+          "pv_total_kwh_entity": "Gesamte PV-Energie des aktuellen Tages. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+          "consumption_total_kwh_entity": "Gesamter Hausverbrauch des aktuellen Tages. PenguinPVDash berechnet diesen Wert nicht selbst neu.",
+          "feedin_total_kwh_entity": "Energie, die am aktuellen Tag ins öffentliche Netz eingespeist wurde.",
+          "grid_import_total_kwh_entity": "Energie, die am aktuellen Tag aus dem öffentlichen Netz bezogen wurde.",
+          "batt_in_total_kwh_entity": "Energie, die am aktuellen Tag in die Batterie geladen wurde.",
+          "batt_out_total_kwh_entity": "Energie, die am aktuellen Tag aus der Batterie entladen wurde."
+        },
         "sections": {
           "connection": {
             "name": "Instanz & Server",
-            "description": "Verbindung, Authentifizierung und Übertragung.",
+            "description": "Verbindung zum externen PenguinPVDash-Server und Übertragungseinstellungen.",
             "data": {
-              "instance_name": "Instanzname",
-              "server_url": "Serveradresse",
-              "api_key": "API-Key",
-              "device_id": "Geräte-ID",
-              "interval": "Intervall (Minuten)",
-              "output_unit": "Leistungseinheit",
-              "verify_server": "Server vor dem Speichern prüfen"
+              "instance_name": "Name dieser Instanz",
+              "server_url": "Adresse des PenguinPVDash-Servers",
+              "api_key": "API-Schlüssel",
+              "device_id": "Geräte-ID / Datenquellen-ID",
+              "interval": "Übertragungsintervall (Minuten)",
+              "output_unit": "Einheit der Live-Leistungssensoren",
+              "verify_server": "Serververbindung beim Speichern prüfen"
             },
             "data_description": {
-              "instance_name": "Ein verständlicher Name wie Familie, Öffentlich oder Test.",
-              "server_url": "Beispiele: `10.10.4.122:8092`, `https://pv.example.org` oder eine vollständige URL bis `/api/ingest.php`. Der Ingest-Pfad wird automatisch ergänzt.",
-              "api_key": "Muss mit dem API-Key übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
-              "device_id": "Kennzeichnet diese Datenquelle auf dem Server, zum Beispiel `home` oder `home2`.",
-              "interval": "Wie oft Home Assistant Daten überträgt. Eine Minute wird empfohlen.",
-              "output_unit": "Einheit der ausgewählten aktuellen Leistungssensoren.",
-              "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Key, ohne einen Messwert zu speichern. Nur bei einem aktuell nicht erreichbaren Server deaktivieren."
+              "instance_name": "Frei wählbarer Name für diesen Integrationseintrag, zum Beispiel „PV Haus“ oder „Testserver“.",
+              "server_url": "Nur die Serveradresse genügt, zum Beispiel `http://10.10.4.122:8092`. `/api/ingest.php` wird automatisch ergänzt. Eine vollständige Ingest-URL wird ebenfalls akzeptiert.",
+              "api_key": "Muss mit dem API-Schlüssel übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+              "device_id": "Ordnet die übertragenen Daten einer Datenquelle zu, zum Beispiel `home` oder `home2`. Muss mit der Geräte-ID auf dem Server übereinstimmen.",
+              "interval": "Wie oft Home Assistant aktuelle Werte überträgt. Eine Minute wird empfohlen.",
+              "output_unit": "Wähle die Einheit, in der die unten ausgewählten aktuellen Leistungssensoren liefern: W oder kW.",
+              "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Schlüssel, ohne einen Messwert zu speichern. Nur deaktivieren, wenn der Server vorübergehend offline ist."
             }
           },
           "power": {
-            "name": "PV, Verbrauch & Netz",
-            "description": "Aktuelle Leistungssensoren für den Energiefluss.",
+            "name": "Aktuelle Leistung: PV, Haus & Netz",
+            "description": "Live-Sensoren für den Energiefluss im Hauptdashboard. Alle Sensoren müssen die oben gewählte Einheit verwenden.",
             "data": {
-              "pv_entity": "PV-Leistung",
-              "consumption_entity": "Verbrauchsleistung",
-              "feedin_entity": "Einspeiseleistung",
-              "grid_import_entity": "Netzbezugsleistung"
+              "pv_entity": "PV-Erzeugungsleistung aktuell",
+              "consumption_entity": "Hausverbrauchsleistung aktuell",
+              "feedin_entity": "Netzeinspeiseleistung aktuell",
+              "grid_import_entity": "Netzbezugsleistung aktuell"
             },
             "data_description": {
-              "consumption_entity": "Wähle den fertigen Gesamtverbrauch des Hauses. Bei einem zusätzlichen Balkonkraftwerk verwendest du hier deinen berechneten Bruttoverbrauchssensor."
+              "pv_entity": "Gesamte aktuelle PV-Leistung. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+              "consumption_entity": "Gesamter aktueller Hausverbrauch. Bei zusätzlichem Balkonkraftwerk den bereits in Home Assistant berechneten Gesamt-/Bruttoverbrauch auswählen.",
+              "feedin_entity": "Aktuelle Leistung, die ins öffentliche Netz eingespeist wird.",
+              "grid_import_entity": "Aktuelle Leistung, die aus dem öffentlichen Netz bezogen wird."
             }
           },
           "battery": {
             "name": "Batteriespeicher",
-            "description": "Optionaler Ladezustand sowie aktuelle Lade- und Entladeleistung.",
+            "description": "Optionale Live-Sensoren des Speichers. Ohne Batteriesystem können diese Felder leer bleiben.",
             "data": {
-              "batt_soc_entity": "Batterieladezustand (%)",
-              "batt_charge_entity": "Batterie-Ladeleistung",
-              "batt_discharge_entity": "Batterie-Entladeleistung"
+              "batt_soc_entity": "Batterieladezustand (SoC)",
+              "batt_charge_entity": "Batterieladeleistung aktuell",
+              "batt_discharge_entity": "Batterieentladeleistung aktuell"
+            },
+            "data_description": {
+              "batt_soc_entity": "Aktueller Ladezustand des Speichers in Prozent.",
+              "batt_charge_entity": "Aktuelle Leistung, mit der die Batterie geladen wird.",
+              "batt_discharge_entity": "Aktuelle Leistung, mit der die Batterie entladen wird."
             }
           },
           "energy": {
-            "name": "Tagesenergien",
-            "description": "Tägliche kWh-Sensoren für Historie und Statistik.",
+            "name": "Tageswerte für Historie & Statistik",
+            "description": "Energiesensoren in kWh, die den jeweiligen Wert für den aktuellen Tag liefern und täglich zurückgesetzt werden.",
             "data": {
-              "pv_total_kwh_entity": "PV gesamt (kWh)",
-              "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
-              "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
-              "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)",
-              "batt_in_total_kwh_entity": "Batterieladung gesamt (kWh)",
-              "batt_out_total_kwh_entity": "Batterieentladung gesamt (kWh)"
+              "pv_total_kwh_entity": "PV-Erzeugung heute (kWh)",
+              "consumption_total_kwh_entity": "Hausverbrauch heute (kWh)",
+              "feedin_total_kwh_entity": "Netzeinspeisung heute (kWh)",
+              "grid_import_total_kwh_entity": "Netzbezug heute (kWh)",
+              "batt_in_total_kwh_entity": "Batterieladung heute (kWh)",
+              "batt_out_total_kwh_entity": "Batterieentladung heute (kWh)"
             },
             "data_description": {
-              "consumption_total_kwh_entity": "Wähle den fertigen Tages-Gesamtverbrauch. PenguinPVDash berechnet den Verbrauch auf dem Server nicht erneut."
+              "pv_total_kwh_entity": "Gesamte PV-Energie des aktuellen Tages. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+              "consumption_total_kwh_entity": "Gesamter Hausverbrauch des aktuellen Tages. PenguinPVDash berechnet diesen Wert nicht selbst neu.",
+              "feedin_total_kwh_entity": "Energie, die am aktuellen Tag ins öffentliche Netz eingespeist wurde.",
+              "grid_import_total_kwh_entity": "Energie, die am aktuellen Tag aus dem öffentlichen Netz bezogen wurde.",
+              "batt_in_total_kwh_entity": "Energie, die am aktuellen Tag in die Batterie geladen wurde.",
+              "batt_out_total_kwh_entity": "Energie, die am aktuellen Tag aus der Batterie entladen wurde."
             }
           }
         }
@@ -71,7 +128,7 @@
     "error": {
       "invalid_url": "Die Serveradresse ist ungültig. Verwende eine IP-Adresse oder eine HTTP-/HTTPS-URL.",
       "cannot_connect": "Der Server ist nicht erreichbar. Prüfe Adresse, Port, Firewall und Docker-Container.",
-      "invalid_auth": "Der Server hat die Geräte-ID oder den API-Key abgelehnt.",
+      "invalid_auth": "Der Server hat die Geräte-ID oder den API-Schlüssel abgelehnt.",
       "invalid_server": "Unter dieser Adresse wurde kein kompatibler PenguinPVDash-Server erkannt.",
       "unknown": "Beim Prüfen des Servers ist ein unerwarteter Fehler aufgetreten."
     }
@@ -79,93 +136,264 @@
   "options": {
     "step": {
       "init": {
-        "title": "Instanz verwalten",
-        "description": "Bearbeite die Instanz oder prüfe die aktuell gespeicherte Serververbindung.",
-        "menu_options": {
-          "configure": "Konfiguration bearbeiten",
-          "test_connection": "Serververbindung prüfen"
+        "title": "PenguinPVDash-Instanz bearbeiten",
+        "description": "Ändere Serverzugang, Geräte-ID, Übertragungsintervall und Sensorzuordnung.",
+        "data": {
+          "instance_name": "Name dieser Instanz",
+          "server_url": "Adresse des PenguinPVDash-Servers",
+          "api_key": "API-Schlüssel",
+          "device_id": "Geräte-ID / Datenquellen-ID",
+          "interval": "Übertragungsintervall (Minuten)",
+          "output_unit": "Einheit der Live-Leistungssensoren",
+          "verify_server": "Serververbindung beim Speichern prüfen",
+          "pv_entity": "PV-Erzeugungsleistung aktuell",
+          "consumption_entity": "Hausverbrauchsleistung aktuell",
+          "feedin_entity": "Netzeinspeiseleistung aktuell",
+          "grid_import_entity": "Netzbezugsleistung aktuell",
+          "batt_soc_entity": "Batterieladezustand (SoC)",
+          "batt_charge_entity": "Batterieladeleistung aktuell",
+          "batt_discharge_entity": "Batterieentladeleistung aktuell",
+          "pv_total_kwh_entity": "PV-Erzeugung heute (kWh)",
+          "consumption_total_kwh_entity": "Hausverbrauch heute (kWh)",
+          "feedin_total_kwh_entity": "Netzeinspeisung heute (kWh)",
+          "grid_import_total_kwh_entity": "Netzbezug heute (kWh)",
+          "batt_in_total_kwh_entity": "Batterieladung heute (kWh)",
+          "batt_out_total_kwh_entity": "Batterieentladung heute (kWh)"
         },
-        "menu_option_descriptions": {
-          "configure": "Server, API-Key, Geräte-ID, Intervall und Sensorzuordnung ändern.",
-          "test_connection": "Gespeicherte URL, Geräte-ID und API-Key prüfen, ohne einen Messwert zu speichern."
-        }
-      },
-      "configure": {
-        "title": "Instanz bearbeiten",
-        "description": "Alle Einstellungen sind thematisch gruppiert. Die Serveradresse kann mit oder ohne `/api/ingest.php` eingegeben werden.",
+        "data_description": {
+          "instance_name": "Frei wählbarer Name für diesen Integrationseintrag, zum Beispiel „PV Haus“ oder „Testserver“.",
+          "server_url": "Nur die Serveradresse genügt, zum Beispiel `http://10.10.4.122:8092`. `/api/ingest.php` wird automatisch ergänzt. Eine vollständige Ingest-URL wird ebenfalls akzeptiert.",
+          "api_key": "Muss mit dem API-Schlüssel übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+          "device_id": "Ordnet die übertragenen Daten einer Datenquelle zu, zum Beispiel `home` oder `home2`. Muss mit der Geräte-ID auf dem Server übereinstimmen.",
+          "interval": "Wie oft Home Assistant aktuelle Werte überträgt. Eine Minute wird empfohlen.",
+          "output_unit": "Wähle die Einheit, in der die unten ausgewählten aktuellen Leistungssensoren liefern: W oder kW.",
+          "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Schlüssel, ohne einen Messwert zu speichern. Nur deaktivieren, wenn der Server vorübergehend offline ist.",
+          "pv_entity": "Gesamte aktuelle PV-Leistung. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+          "consumption_entity": "Gesamter aktueller Hausverbrauch. Bei zusätzlichem Balkonkraftwerk den bereits in Home Assistant berechneten Gesamt-/Bruttoverbrauch auswählen.",
+          "feedin_entity": "Aktuelle Leistung, die ins öffentliche Netz eingespeist wird.",
+          "grid_import_entity": "Aktuelle Leistung, die aus dem öffentlichen Netz bezogen wird.",
+          "batt_soc_entity": "Aktueller Ladezustand des Speichers in Prozent.",
+          "batt_charge_entity": "Aktuelle Leistung, mit der die Batterie geladen wird.",
+          "batt_discharge_entity": "Aktuelle Leistung, mit der die Batterie entladen wird.",
+          "pv_total_kwh_entity": "Gesamte PV-Energie des aktuellen Tages. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+          "consumption_total_kwh_entity": "Gesamter Hausverbrauch des aktuellen Tages. PenguinPVDash berechnet diesen Wert nicht selbst neu.",
+          "feedin_total_kwh_entity": "Energie, die am aktuellen Tag ins öffentliche Netz eingespeist wurde.",
+          "grid_import_total_kwh_entity": "Energie, die am aktuellen Tag aus dem öffentlichen Netz bezogen wurde.",
+          "batt_in_total_kwh_entity": "Energie, die am aktuellen Tag in die Batterie geladen wurde.",
+          "batt_out_total_kwh_entity": "Energie, die am aktuellen Tag aus der Batterie entladen wurde."
+        },
         "sections": {
           "connection": {
             "name": "Instanz & Server",
-            "description": "Verbindung, Authentifizierung und Übertragung.",
+            "description": "Verbindung zum externen PenguinPVDash-Server und Übertragungseinstellungen.",
             "data": {
-              "instance_name": "Instanzname",
-              "server_url": "Serveradresse",
-              "api_key": "API-Key",
-              "device_id": "Geräte-ID",
-              "interval": "Intervall (Minuten)",
-              "output_unit": "Leistungseinheit",
-              "verify_server": "Server vor dem Speichern prüfen"
+              "instance_name": "Name dieser Instanz",
+              "server_url": "Adresse des PenguinPVDash-Servers",
+              "api_key": "API-Schlüssel",
+              "device_id": "Geräte-ID / Datenquellen-ID",
+              "interval": "Übertragungsintervall (Minuten)",
+              "output_unit": "Einheit der Live-Leistungssensoren",
+              "verify_server": "Serververbindung beim Speichern prüfen"
             },
             "data_description": {
-              "server_url": "Beispiele: `10.10.4.122:8092`, `https://pv.example.org` oder eine vollständige URL bis `/api/ingest.php`. Der Ingest-Pfad wird automatisch ergänzt.",
-              "api_key": "Muss mit dem API-Key übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
-              "device_id": "Kennzeichnet diese Datenquelle auf dem Server, zum Beispiel `home` oder `home2`.",
-              "interval": "Wie oft Home Assistant Daten überträgt. Eine Minute wird empfohlen.",
-              "output_unit": "Einheit der ausgewählten aktuellen Leistungssensoren.",
-              "verify_server": "Die Prüfung läuft nur, wenn URL, API-Key oder Geräte-ID geändert wurden."
+              "instance_name": "Frei wählbarer Name für diesen Integrationseintrag, zum Beispiel „PV Haus“ oder „Testserver“.",
+              "server_url": "Nur die Serveradresse genügt, zum Beispiel `http://10.10.4.122:8092`. `/api/ingest.php` wird automatisch ergänzt. Eine vollständige Ingest-URL wird ebenfalls akzeptiert.",
+              "api_key": "Muss mit dem API-Schlüssel übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+              "device_id": "Ordnet die übertragenen Daten einer Datenquelle zu, zum Beispiel `home` oder `home2`. Muss mit der Geräte-ID auf dem Server übereinstimmen.",
+              "interval": "Wie oft Home Assistant aktuelle Werte überträgt. Eine Minute wird empfohlen.",
+              "output_unit": "Wähle die Einheit, in der die unten ausgewählten aktuellen Leistungssensoren liefern: W oder kW.",
+              "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Schlüssel, ohne einen Messwert zu speichern. Nur deaktivieren, wenn der Server vorübergehend offline ist."
             }
           },
           "power": {
-            "name": "PV, Verbrauch & Netz",
-            "description": "Aktuelle Leistungssensoren für den Energiefluss.",
+            "name": "Aktuelle Leistung: PV, Haus & Netz",
+            "description": "Live-Sensoren für den Energiefluss im Hauptdashboard. Alle Sensoren müssen die oben gewählte Einheit verwenden.",
             "data": {
-              "pv_entity": "PV-Leistung",
-              "consumption_entity": "Verbrauchsleistung",
-              "feedin_entity": "Einspeiseleistung",
-              "grid_import_entity": "Netzbezugsleistung"
+              "pv_entity": "PV-Erzeugungsleistung aktuell",
+              "consumption_entity": "Hausverbrauchsleistung aktuell",
+              "feedin_entity": "Netzeinspeiseleistung aktuell",
+              "grid_import_entity": "Netzbezugsleistung aktuell"
             },
             "data_description": {
-              "consumption_entity": "Wähle den fertigen Gesamtverbrauch des Hauses."
+              "pv_entity": "Gesamte aktuelle PV-Leistung. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+              "consumption_entity": "Gesamter aktueller Hausverbrauch. Bei zusätzlichem Balkonkraftwerk den bereits in Home Assistant berechneten Gesamt-/Bruttoverbrauch auswählen.",
+              "feedin_entity": "Aktuelle Leistung, die ins öffentliche Netz eingespeist wird.",
+              "grid_import_entity": "Aktuelle Leistung, die aus dem öffentlichen Netz bezogen wird."
             }
           },
           "battery": {
             "name": "Batteriespeicher",
-            "description": "Optionaler Ladezustand sowie aktuelle Lade- und Entladeleistung.",
+            "description": "Optionale Live-Sensoren des Speichers. Ohne Batteriesystem können diese Felder leer bleiben.",
             "data": {
-              "batt_soc_entity": "Batterieladezustand (%)",
-              "batt_charge_entity": "Batterie-Ladeleistung",
-              "batt_discharge_entity": "Batterie-Entladeleistung"
+              "batt_soc_entity": "Batterieladezustand (SoC)",
+              "batt_charge_entity": "Batterieladeleistung aktuell",
+              "batt_discharge_entity": "Batterieentladeleistung aktuell"
+            },
+            "data_description": {
+              "batt_soc_entity": "Aktueller Ladezustand des Speichers in Prozent.",
+              "batt_charge_entity": "Aktuelle Leistung, mit der die Batterie geladen wird.",
+              "batt_discharge_entity": "Aktuelle Leistung, mit der die Batterie entladen wird."
             }
           },
           "energy": {
-            "name": "Tagesenergien",
-            "description": "Tägliche kWh-Sensoren für Historie und Statistik.",
+            "name": "Tageswerte für Historie & Statistik",
+            "description": "Energiesensoren in kWh, die den jeweiligen Wert für den aktuellen Tag liefern und täglich zurückgesetzt werden.",
             "data": {
-              "pv_total_kwh_entity": "PV gesamt (kWh)",
-              "consumption_total_kwh_entity": "Verbrauch gesamt (kWh)",
-              "feedin_total_kwh_entity": "Einspeisung gesamt (kWh)",
-              "grid_import_total_kwh_entity": "Netzbezug gesamt (kWh)",
-              "batt_in_total_kwh_entity": "Batterieladung gesamt (kWh)",
-              "batt_out_total_kwh_entity": "Batterieentladung gesamt (kWh)"
+              "pv_total_kwh_entity": "PV-Erzeugung heute (kWh)",
+              "consumption_total_kwh_entity": "Hausverbrauch heute (kWh)",
+              "feedin_total_kwh_entity": "Netzeinspeisung heute (kWh)",
+              "grid_import_total_kwh_entity": "Netzbezug heute (kWh)",
+              "batt_in_total_kwh_entity": "Batterieladung heute (kWh)",
+              "batt_out_total_kwh_entity": "Batterieentladung heute (kWh)"
+            },
+            "data_description": {
+              "pv_total_kwh_entity": "Gesamte PV-Energie des aktuellen Tages. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+              "consumption_total_kwh_entity": "Gesamter Hausverbrauch des aktuellen Tages. PenguinPVDash berechnet diesen Wert nicht selbst neu.",
+              "feedin_total_kwh_entity": "Energie, die am aktuellen Tag ins öffentliche Netz eingespeist wurde.",
+              "grid_import_total_kwh_entity": "Energie, die am aktuellen Tag aus dem öffentlichen Netz bezogen wurde.",
+              "batt_in_total_kwh_entity": "Energie, die am aktuellen Tag in die Batterie geladen wurde.",
+              "batt_out_total_kwh_entity": "Energie, die am aktuellen Tag aus der Batterie entladen wurde."
+            }
+          }
+        }
+      },
+      "configure": {
+        "title": "PenguinPVDash-Instanz bearbeiten",
+        "description": "Ändere Serverzugang, Geräte-ID, Übertragungsintervall und Sensorzuordnung.",
+        "data": {
+          "instance_name": "Name dieser Instanz",
+          "server_url": "Adresse des PenguinPVDash-Servers",
+          "api_key": "API-Schlüssel",
+          "device_id": "Geräte-ID / Datenquellen-ID",
+          "interval": "Übertragungsintervall (Minuten)",
+          "output_unit": "Einheit der Live-Leistungssensoren",
+          "verify_server": "Serververbindung beim Speichern prüfen",
+          "pv_entity": "PV-Erzeugungsleistung aktuell",
+          "consumption_entity": "Hausverbrauchsleistung aktuell",
+          "feedin_entity": "Netzeinspeiseleistung aktuell",
+          "grid_import_entity": "Netzbezugsleistung aktuell",
+          "batt_soc_entity": "Batterieladezustand (SoC)",
+          "batt_charge_entity": "Batterieladeleistung aktuell",
+          "batt_discharge_entity": "Batterieentladeleistung aktuell",
+          "pv_total_kwh_entity": "PV-Erzeugung heute (kWh)",
+          "consumption_total_kwh_entity": "Hausverbrauch heute (kWh)",
+          "feedin_total_kwh_entity": "Netzeinspeisung heute (kWh)",
+          "grid_import_total_kwh_entity": "Netzbezug heute (kWh)",
+          "batt_in_total_kwh_entity": "Batterieladung heute (kWh)",
+          "batt_out_total_kwh_entity": "Batterieentladung heute (kWh)"
+        },
+        "data_description": {
+          "instance_name": "Frei wählbarer Name für diesen Integrationseintrag, zum Beispiel „PV Haus“ oder „Testserver“.",
+          "server_url": "Nur die Serveradresse genügt, zum Beispiel `http://10.10.4.122:8092`. `/api/ingest.php` wird automatisch ergänzt. Eine vollständige Ingest-URL wird ebenfalls akzeptiert.",
+          "api_key": "Muss mit dem API-Schlüssel übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+          "device_id": "Ordnet die übertragenen Daten einer Datenquelle zu, zum Beispiel `home` oder `home2`. Muss mit der Geräte-ID auf dem Server übereinstimmen.",
+          "interval": "Wie oft Home Assistant aktuelle Werte überträgt. Eine Minute wird empfohlen.",
+          "output_unit": "Wähle die Einheit, in der die unten ausgewählten aktuellen Leistungssensoren liefern: W oder kW.",
+          "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Schlüssel, ohne einen Messwert zu speichern. Nur deaktivieren, wenn der Server vorübergehend offline ist.",
+          "pv_entity": "Gesamte aktuelle PV-Leistung. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+          "consumption_entity": "Gesamter aktueller Hausverbrauch. Bei zusätzlichem Balkonkraftwerk den bereits in Home Assistant berechneten Gesamt-/Bruttoverbrauch auswählen.",
+          "feedin_entity": "Aktuelle Leistung, die ins öffentliche Netz eingespeist wird.",
+          "grid_import_entity": "Aktuelle Leistung, die aus dem öffentlichen Netz bezogen wird.",
+          "batt_soc_entity": "Aktueller Ladezustand des Speichers in Prozent.",
+          "batt_charge_entity": "Aktuelle Leistung, mit der die Batterie geladen wird.",
+          "batt_discharge_entity": "Aktuelle Leistung, mit der die Batterie entladen wird.",
+          "pv_total_kwh_entity": "Gesamte PV-Energie des aktuellen Tages. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+          "consumption_total_kwh_entity": "Gesamter Hausverbrauch des aktuellen Tages. PenguinPVDash berechnet diesen Wert nicht selbst neu.",
+          "feedin_total_kwh_entity": "Energie, die am aktuellen Tag ins öffentliche Netz eingespeist wurde.",
+          "grid_import_total_kwh_entity": "Energie, die am aktuellen Tag aus dem öffentlichen Netz bezogen wurde.",
+          "batt_in_total_kwh_entity": "Energie, die am aktuellen Tag in die Batterie geladen wurde.",
+          "batt_out_total_kwh_entity": "Energie, die am aktuellen Tag aus der Batterie entladen wurde."
+        },
+        "sections": {
+          "connection": {
+            "name": "Instanz & Server",
+            "description": "Verbindung zum externen PenguinPVDash-Server und Übertragungseinstellungen.",
+            "data": {
+              "instance_name": "Name dieser Instanz",
+              "server_url": "Adresse des PenguinPVDash-Servers",
+              "api_key": "API-Schlüssel",
+              "device_id": "Geräte-ID / Datenquellen-ID",
+              "interval": "Übertragungsintervall (Minuten)",
+              "output_unit": "Einheit der Live-Leistungssensoren",
+              "verify_server": "Serververbindung beim Speichern prüfen"
+            },
+            "data_description": {
+              "instance_name": "Frei wählbarer Name für diesen Integrationseintrag, zum Beispiel „PV Haus“ oder „Testserver“.",
+              "server_url": "Nur die Serveradresse genügt, zum Beispiel `http://10.10.4.122:8092`. `/api/ingest.php` wird automatisch ergänzt. Eine vollständige Ingest-URL wird ebenfalls akzeptiert.",
+              "api_key": "Muss mit dem API-Schlüssel übereinstimmen, der auf dem Server für diese Geräte-ID hinterlegt ist.",
+              "device_id": "Ordnet die übertragenen Daten einer Datenquelle zu, zum Beispiel `home` oder `home2`. Muss mit der Geräte-ID auf dem Server übereinstimmen.",
+              "interval": "Wie oft Home Assistant aktuelle Werte überträgt. Eine Minute wird empfohlen.",
+              "output_unit": "Wähle die Einheit, in der die unten ausgewählten aktuellen Leistungssensoren liefern: W oder kW.",
+              "verify_server": "Prüft Erreichbarkeit, Geräte-ID und API-Schlüssel, ohne einen Messwert zu speichern. Nur deaktivieren, wenn der Server vorübergehend offline ist."
+            }
+          },
+          "power": {
+            "name": "Aktuelle Leistung: PV, Haus & Netz",
+            "description": "Live-Sensoren für den Energiefluss im Hauptdashboard. Alle Sensoren müssen die oben gewählte Einheit verwenden.",
+            "data": {
+              "pv_entity": "PV-Erzeugungsleistung aktuell",
+              "consumption_entity": "Hausverbrauchsleistung aktuell",
+              "feedin_entity": "Netzeinspeiseleistung aktuell",
+              "grid_import_entity": "Netzbezugsleistung aktuell"
+            },
+            "data_description": {
+              "pv_entity": "Gesamte aktuelle PV-Leistung. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+              "consumption_entity": "Gesamter aktueller Hausverbrauch. Bei zusätzlichem Balkonkraftwerk den bereits in Home Assistant berechneten Gesamt-/Bruttoverbrauch auswählen.",
+              "feedin_entity": "Aktuelle Leistung, die ins öffentliche Netz eingespeist wird.",
+              "grid_import_entity": "Aktuelle Leistung, die aus dem öffentlichen Netz bezogen wird."
+            }
+          },
+          "battery": {
+            "name": "Batteriespeicher",
+            "description": "Optionale Live-Sensoren des Speichers. Ohne Batteriesystem können diese Felder leer bleiben.",
+            "data": {
+              "batt_soc_entity": "Batterieladezustand (SoC)",
+              "batt_charge_entity": "Batterieladeleistung aktuell",
+              "batt_discharge_entity": "Batterieentladeleistung aktuell"
+            },
+            "data_description": {
+              "batt_soc_entity": "Aktueller Ladezustand des Speichers in Prozent.",
+              "batt_charge_entity": "Aktuelle Leistung, mit der die Batterie geladen wird.",
+              "batt_discharge_entity": "Aktuelle Leistung, mit der die Batterie entladen wird."
+            }
+          },
+          "energy": {
+            "name": "Tageswerte für Historie & Statistik",
+            "description": "Energiesensoren in kWh, die den jeweiligen Wert für den aktuellen Tag liefern und täglich zurückgesetzt werden.",
+            "data": {
+              "pv_total_kwh_entity": "PV-Erzeugung heute (kWh)",
+              "consumption_total_kwh_entity": "Hausverbrauch heute (kWh)",
+              "feedin_total_kwh_entity": "Netzeinspeisung heute (kWh)",
+              "grid_import_total_kwh_entity": "Netzbezug heute (kWh)",
+              "batt_in_total_kwh_entity": "Batterieladung heute (kWh)",
+              "batt_out_total_kwh_entity": "Batterieentladung heute (kWh)"
+            },
+            "data_description": {
+              "pv_total_kwh_entity": "Gesamte PV-Energie des aktuellen Tages. Bei mehreren Anlagen sollte der Sensor alle PV-Erzeuger zusammenfassen.",
+              "consumption_total_kwh_entity": "Gesamter Hausverbrauch des aktuellen Tages. PenguinPVDash berechnet diesen Wert nicht selbst neu.",
+              "feedin_total_kwh_entity": "Energie, die am aktuellen Tag ins öffentliche Netz eingespeist wurde.",
+              "grid_import_total_kwh_entity": "Energie, die am aktuellen Tag aus dem öffentlichen Netz bezogen wurde.",
+              "batt_in_total_kwh_entity": "Energie, die am aktuellen Tag in die Batterie geladen wurde.",
+              "batt_out_total_kwh_entity": "Energie, die am aktuellen Tag aus der Batterie entladen wurde."
             }
           }
         }
       },
       "test_connection": {
         "title": "Serververbindung prüfen",
-        "description": "Prüfe `{url}` für das Gerät `{device}`. Es werden keine Messdaten gespeichert."
+        "description": "Prüfe `{url}` für die Geräte-ID `{device}`. Es werden keine Messdaten gespeichert."
       }
     },
     "error": {
       "invalid_url": "Die Serveradresse ist ungültig. Verwende eine IP-Adresse oder eine HTTP-/HTTPS-URL.",
       "cannot_connect": "Der Server ist nicht erreichbar. Prüfe Adresse, Port, Firewall und Docker-Container.",
-      "invalid_auth": "Der Server hat die Geräte-ID oder den API-Key abgelehnt.",
+      "invalid_auth": "Der Server hat die Geräte-ID oder den API-Schlüssel abgelehnt.",
       "invalid_server": "Unter dieser Adresse wurde kein kompatibler PenguinPVDash-Server erkannt.",
       "unknown": "Beim Prüfen des Servers ist ein unerwarteter Fehler aufgetreten."
     }
   },
   "abort": {
-    "connection_successful": "Verbindung erfolgreich. PenguinPVDash {version} wurde unter {url} erreicht; Geräte-ID und API-Key wurden akzeptiert.",
-    "connection_reachable_unverified": "Der Server ist unter {url} erreichbar, unterstützt mit Version {version} aber noch keine schreibfreie Authentifizierungsprüfung. Aktualisiere den Server, um den API-Key aus Home Assistant heraus zu prüfen."
+    "connection_successful": "Verbindung erfolgreich. PenguinPVDash {version} wurde unter {url} erreicht; Geräte-ID und API-Schlüssel wurden akzeptiert.",
+    "connection_reachable_unverified": "Der Server ist unter {url} erreichbar, unterstützt mit Version {version} aber noch keine schreibfreie Authentifizierungsprüfung. Aktualisiere den Server, um den API-Schlüssel aus Home Assistant heraus zu prüfen."
   }
 }

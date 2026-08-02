@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.7.4
+
+- Added clear German and English labels for every Home Assistant entity mapping.
+- Added explanatory help text for live power, battery and daily-energy sensors.
+- Renamed ambiguous daily fields from “total” to “today” in the user interface.
+- Added compatibility labels at section and step level to prevent raw keys such as `pv_entity` from being displayed.
+- Other Home Assistant interface languages fall back to the complete English translation.
+
+## 1.7.3
+
+- Opens the integration configuration directly when editing an entry.
+- Removes the intermediate options menu whose labels could appear blank.
+- Server verification now runs whenever the verification checkbox is enabled and the form is saved.
+
 ## 1.7.2
 
 - Home Assistant integration form grouped into server, PV/grid, battery and daily-energy sections.

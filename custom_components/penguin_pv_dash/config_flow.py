@@ -364,11 +364,8 @@ class PenguinPVDashOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Show the options menu."""
-        return self.async_show_menu(
-            step_id="init",
-            menu_options=["configure", "test_connection"],
-        )
+        """Open the editable configuration directly."""
+        return await self.async_step_configure(user_input)
 
     async def async_step_configure(
         self, user_input: dict[str, Any] | None = None
@@ -387,7 +384,7 @@ class PenguinPVDashOptionsFlowHandler(config_entries.OptionsFlow):
                 submitted[CONF_SERVER_URL] = normalize_ingest_url(
                     submitted.get(CONF_SERVER_URL)
                 )
-                if verify_server and _connection_changed(submitted, current):
+                if verify_server:
                     await _validate_connection(self.hass, submitted)
             except InvalidServerUrl:
                 errors["base"] = "invalid_url"
