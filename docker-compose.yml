@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        PVDASH_VERSION: "1.8.2"
+        PVDASH_VERSION: "1.8.3"
     container_name: penguinpvdash
     restart: unless-stopped
     ports:

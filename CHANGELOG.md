@@ -1,3 +1,9 @@
+## 1.8.3
+
+- Refined the modern energy-flow diagram again with clearer node placement and improved visual balance.
+- Moved the Home node to the bottom-right position consistently and reduced the visual weight of the value labels.
+- Softened the node background panels, centered the icons more cleanly, and redesigned the battery tile to act as a filling battery indicator.
+
 ## 1.8.2
 
 - Refined the optional modern energy-flow diagram to match the requested E3/DC-style 4-corner layout more closely.
