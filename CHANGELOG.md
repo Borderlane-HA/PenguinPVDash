@@ -1,3 +1,9 @@
+## 1.8.2
+
+- Refined the optional modern energy-flow diagram to match the requested E3/DC-style 4-corner layout more closely.
+- Simplified the modern node labels to PV, Grid, Battery and Home, with cleaner squared cards and clearer directional arrows.
+- Kept animated flow bars on the active paths so charging, discharging, import and export directions remain visible at a glance.
+
 ## 1.8.1
 
 - Fixed battery discharge/charge ratio outliers on days without meaningful charging.

@@ -293,12 +293,10 @@ async function refreshLive(){
     const gridExporting = exportKW > 0.01;
     const gridImporting = !gridExporting && importKW > 0.01;
     setText('modern_grid_now', smartPower(gridExporting ? exportKW : (gridImporting ? importKW : 0)));
-    setText('modern_grid_mode', gridExporting ? FLOW_LABELS.gridExport : (gridImporting ? FLOW_LABELS.gridImport : FLOW_LABELS.idle));
 
     const batteryDischarging = bo > 0.01;
     const batteryCharging = !batteryDischarging && bi > 0.01;
     setText('modern_battery_now', smartPower(batteryDischarging ? bo : (batteryCharging ? bi : 0)));
-    setText('modern_battery_mode', batteryDischarging ? FLOW_LABELS.batteryDischarging : (batteryCharging ? FLOW_LABELS.batteryCharging : FLOW_LABELS.idle));
 
     const pvOn = pv > 0.01;
     const houseOn = cons > 0.01;
