@@ -358,3 +358,93 @@ body[data-theme="light"] .top-actions .button-primary{color:#fff}
 body[data-theme="light"] .language-link.is-active{color:#fff}
 
 .auth-language{display:flex;justify-content:center;margin:-2px 0 8px}.auth-language .language-switch{margin:0}
+
+/* ===== PenguinPVDash 1.7.6 flow contrast and adaptive branding ===== */
+/* Keep the bundled square icon compact, but let custom logos use their
+   natural aspect ratio. Wide logos may grow horizontally without forcing
+   an oversized header. */
+.brand-icon-custom{
+  width:auto;
+  height:64px;
+  max-width:180px;
+  max-height:64px;
+  flex:0 1 auto;
+  padding:5px 8px;
+  object-fit:contain;
+  object-position:center;
+}
+
+/* Improve contrast of the energy-flow diagram in the light theme. */
+body[data-theme="light"] .flowwrap{
+  background:linear-gradient(145deg,#f9fbff,#eef4fc)!important;
+  border-color:#b9c9e2!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+}
+body[data-theme="light"] .flow .node{
+  background:rgba(255,255,255,.96)!important;
+  border-color:#b8c9e3!important;
+  box-shadow:0 8px 20px rgba(45,76,126,.10);
+}
+body[data-theme="light"] .flow .node h3{
+  color:#15233b;
+}
+body[data-theme="light"] .flow .node .sub{
+  color:#405474;
+  font-weight:650;
+}
+body[data-theme="light"] .flow .node .ico{
+  background:#f1f6ff!important;
+  box-shadow:inset 0 0 0 1px #c4d2e7,0 4px 12px rgba(42,74,124,.10)!important;
+}
+body[data-theme="light"] .flow .node .ico-pv{background:#e8fbf1!important}
+body[data-theme="light"] .flow .node .ico-house{background:#edf3ff!important}
+body[data-theme="light"] .flow .node .ico-grid{background:#fff4e7!important}
+
+body[data-theme="light"] #l_pv_house,
+body[data-theme="light"] #l_pv_grid,
+body[data-theme="light"] #l_pv_batt{
+  stroke:#21a968!important;
+  stroke-width:3.4!important;
+}
+body[data-theme="light"] #l_batt_house{
+  stroke:#d18a14!important;
+  stroke-width:3.4!important;
+}
+body[data-theme="light"] #l_grid_house{
+  stroke:#3477d8!important;
+  stroke-width:3.4!important;
+}
+body[data-theme="light"] .token.pv{fill:#16a461!important}
+body[data-theme="light"] .token.batt{fill:#c77b00!important}
+body[data-theme="light"] .token.grid{fill:#2d6fcf!important}
+body[data-theme="light"] .token{
+  filter:drop-shadow(0 0 2px rgba(24,45,78,.32));
+}
+body[data-theme="light"] #n_batt .bat{
+  background:#edf3fb!important;
+  border-color:#627493!important;
+  box-shadow:inset 0 0 6px rgba(34,58,96,.10);
+}
+body[data-theme="light"] #n_batt .bat::after{
+  background:#edf3fb!important;
+  border-color:#627493!important;
+}
+
+@media(max-width:900px){
+  .brand-icon-custom{height:56px;max-height:56px;max-width:160px}
+}
+@media(max-width:620px){
+  .brand-icon-custom{height:48px;max-height:48px;max-width:125px;padding:4px 6px}
+}
+.login-logo-custom{
+  width:auto;
+  height:auto;
+  max-width:220px;
+  max-height:120px;
+}
+.preview-header img.preview-logo-custom{
+  width:auto;
+  height:auto;
+  max-width:150px;
+  max-height:58px;
+}

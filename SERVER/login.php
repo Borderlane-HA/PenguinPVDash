@@ -35,7 +35,7 @@ $guestProtected = ((string) pvdash_config('guest_password', '')) !== '';
 <body <?= pvdash_body_attributes() ?>>
 <div class="auth-shell">
   <main class="auth-card">
-    <img class="login-logo" src="<?= htmlspecialchars(pvdash_logo_url(), ENT_QUOTES, 'UTF-8') ?>" alt="">
+    <img class="login-logo<?= pvdash_custom_logo_path() !== null ? ' login-logo-custom' : '' ?>" src="<?= htmlspecialchars(pvdash_logo_url(), ENT_QUOTES, 'UTF-8') ?>" alt="">
     <div class="auth-language"><?php pvdash_render_language_switch(); ?></div>
     <h1><?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?></h1>
     <p class="muted"><?= $guestProtected ? th('auth_login_help_protected') : th('auth_login_help_public') ?></p>

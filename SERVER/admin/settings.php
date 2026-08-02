@@ -414,7 +414,7 @@ $metricLabels = [
           <label><?= th('settings_custom_logo') ?><input type="file" name="custom_logo" accept="image/png,image/jpeg,image/webp"><span class="field-help"><?= th('settings_custom_logo_help') ?></span></label>
           <?php if (pvdash_custom_logo_path() !== null): ?><label class="checkbox-label settings-checkbox"><input type="checkbox" name="remove_logo" value="1"><span><?= th('settings_remove_logo') ?></span></label><?php endif; ?>
         </div>
-        <aside class="appearance-preview" id="appearance-preview"><div class="preview-header"><img src="<?= htmlspecialchars(pvdash_logo_url('../'), ENT_QUOTES, 'UTF-8') ?>" alt=""><strong id="preview-title"><?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?></strong></div><div class="preview-card"><span><?= th('settings_preview') ?></span><button type="button" class="button button-primary"><?= th('settings_preview_button') ?></button></div></aside>
+        <aside class="appearance-preview" id="appearance-preview"><div class="preview-header"><img class="<?= pvdash_custom_logo_path() !== null ? 'preview-logo-custom' : '' ?>" src="<?= htmlspecialchars(pvdash_logo_url('../'), ENT_QUOTES, 'UTF-8') ?>" alt=""><strong id="preview-title"><?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?></strong></div><div class="preview-card"><span><?= th('settings_preview') ?></span><button type="button" class="button button-primary"><?= th('settings_preview_button') ?></button></div></aside>
       </div>
 
       <div class="subsection-head"><h3><?= th('settings_metric_colors_title') ?></h3></div>

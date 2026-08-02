@@ -1,3 +1,9 @@
+## 1.7.6
+
+- Improved energy-flow contrast in the light theme.
+- Custom header logos now keep their aspect ratio and can use up to 180 px width.
+- Fixed Proxmox SSH setup so optional root password login is applied before conflicting cloud defaults, the SSH service is restarted, and the effective configuration is validated during installation.
+
 ## 1.7.5
 
 - Replaced the optional `verify_server` switch with mandatory validation during initial setup.

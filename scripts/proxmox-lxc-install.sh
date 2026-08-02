@@ -268,7 +268,35 @@ if [[ "$ENABLE_ROOT_LOGIN" != "true" ]]; then
 fi
 
 if [[ "$ENABLE_SSH" == "true" ]]; then
-  pct exec "$VMID" -- bash -lc "install -d -m 0755 /etc/ssh/sshd_config.d; printf '%s\n' 'PermitRootLogin yes' 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/99-penguinpvdash-root.conf; chmod 0644 /etc/ssh/sshd_config.d/99-penguinpvdash-root.conf; systemctl enable --now ssh"
+  echo "Configuring and validating SSH root password login..."
+  pct exec "$VMID" -- bash -lc '
+    set -Eeuo pipefail
+
+    install -d -m 0755 /etc/ssh/sshd_config.d
+
+    # OpenSSH uses the first value found for most options. A 00- prefix
+    # ensures these explicit installer choices are read before cloud defaults.
+    cat > /etc/ssh/sshd_config.d/00-penguinpvdash-root.conf <<EOF
+PermitRootLogin yes
+PasswordAuthentication yes
+UsePAM yes
+EOF
+
+    rm -f /etc/ssh/sshd_config.d/99-penguinpvdash-root.conf
+    chmod 0644 /etc/ssh/sshd_config.d/00-penguinpvdash-root.conf
+
+    /usr/sbin/sshd -t
+    systemctl enable ssh
+    systemctl restart ssh
+
+    # Validate the effective configuration, including possible Match rules.
+    effective_config="$(/usr/sbin/sshd -T -C user=root,host=localhost,addr=127.0.0.1)"
+    grep -qx "permitrootlogin yes" <<<"$effective_config"
+    grep -qx "passwordauthentication yes" <<<"$effective_config"
+    grep -qx "usepam yes" <<<"$effective_config"
+    passwd -S root | grep -q "^root P "
+    systemctl is-active --quiet ssh
+  '
 fi
 
 pct exec "$VMID" -- mkdir -p "/opt/$APP_SLUG/data"

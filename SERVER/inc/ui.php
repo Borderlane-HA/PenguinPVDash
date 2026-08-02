@@ -172,8 +172,11 @@ function pvdash_render_navigation(string $active, string $root = ''): void
 
 function pvdash_render_brand_heading(string $heading, string $root = '', bool $showRole = true): void
 {
+    $isCustomLogo = pvdash_custom_logo_path() !== null;
+    $logoClass = 'brand-icon' . ($isCustomLogo ? ' brand-icon-custom' : '');
+
     echo '<div class="brand-title">';
-    echo '<img class="brand-icon" src="' . htmlspecialchars(pvdash_logo_url($root), ENT_QUOTES, 'UTF-8') . '" alt="" width="42" height="42">';
+    echo '<img class="' . $logoClass . '" src="' . htmlspecialchars(pvdash_logo_url($root), ENT_QUOTES, 'UTF-8') . '" alt="">';
     echo '<h1>' . htmlspecialchars($heading, ENT_QUOTES, 'UTF-8') . '</h1>';
     if ($showRole) {
         $isAdmin = pvdash_is_admin();
