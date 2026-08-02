@@ -24,11 +24,13 @@ from .const import (
     CONF_FEEDIN_TOTAL_KWH_ENTITY,
     CONF_GRID_IMPORT_ENTITY,
     CONF_IMPORT_TOTAL_KWH_ENTITY,
+    CONF_INSTANCE_NAME,
     CONF_INTERVAL,
     CONF_OUTPUT_UNIT,
     CONF_PV_ENTITY,
     CONF_PV_TOTAL_KWH_ENTITY,
     CONF_SERVER_URL,
+    DEFAULT_INSTANCE_NAME,
     DEFAULT_INTERVAL,
     DEFAULT_OUTPUT_UNIT,
     DOMAIN,
@@ -63,10 +65,20 @@ def _entity_selector() -> selector.EntitySelector:
     )
 
 
+def _normalise_instance_name(value: Any, fallback: str = DEFAULT_INSTANCE_NAME) -> str:
+    """Return a non-empty config-entry title."""
+    name = str(value or "").strip()
+    return name or fallback
+
+
 def _schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
     """Build the setup/options schema with the current values as defaults."""
     current = defaults or {}
     fields: dict[vol.Marker, Any] = {
+        vol.Required(
+            CONF_INSTANCE_NAME,
+            default=current.get(CONF_INSTANCE_NAME, DEFAULT_INSTANCE_NAME),
+        ): selector.TextSelector(),
         vol.Required(
             CONF_SERVER_URL,
             default=current.get(CONF_SERVER_URL, ""),
@@ -126,7 +138,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle setup through the Home Assistant UI."""
         if user_input is not None:
-            return self.async_create_entry(title="PenguinPVDash", data=user_input)
+            entry_data = dict(user_input)
+            instance_name = _normalise_instance_name(
+                entry_data.pop(CONF_INSTANCE_NAME, DEFAULT_INSTANCE_NAME)
+            )
+            return self.async_create_entry(title=instance_name, data=entry_data)
 
         return self.async_show_form(step_id="user", data_schema=_schema())
 
@@ -139,12 +155,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(
         config_entry: ConfigEntry,
     ) -> config_entries.OptionsFlow:
-        """Create the options flow.
-
-        Home Assistant now provides the config entry via self.config_entry.
-        Passing it to the handler and assigning self.config_entry causes a 500
-        error on current Home Assistant versions.
-        """
+        """Create the options flow."""
         return PenguinPVDashOptionsFlowHandler()
 
 
@@ -156,18 +167,37 @@ class PenguinPVDashOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Show and save the editable integration settings."""
         if user_input is not None:
+            submitted = dict(user_input)
+            instance_name = _normalise_instance_name(
+                submitted.pop(CONF_INSTANCE_NAME, self.config_entry.title),
+                self.config_entry.title or DEFAULT_INSTANCE_NAME,
+            )
+
             new_options = dict(self.config_entry.options)
-            new_options.update(user_input)
+            new_options.update(submitted)
 
             # A cleared optional selector is omitted from user_input. Store an
             # explicit empty value so it also overrides a value in entry.data.
             for key in _CLEARABLE_FIELDS:
-                if key not in user_input:
+                if key not in submitted:
                     new_options[key] = ""
+
+            # The visible name belongs to the config entry itself, not to the
+            # server payload. Updating it here lets every server instance be
+            # renamed independently at any time.
+            if instance_name != self.config_entry.title:
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    title=instance_name,
+                )
 
             return self.async_create_entry(data=new_options)
 
-        defaults = {**self.config_entry.data, **self.config_entry.options}
+        defaults = {
+            **self.config_entry.data,
+            **self.config_entry.options,
+            CONF_INSTANCE_NAME: self.config_entry.title or DEFAULT_INSTANCE_NAME,
+        }
         return self.async_show_form(
             step_id="init",
             data_schema=_schema(defaults),

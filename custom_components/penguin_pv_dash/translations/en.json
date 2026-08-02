@@ -4,8 +4,9 @@
     "step": {
       "user": {
         "title": "Configure PenguinPVDash",
-        "description": "Periodically send PV/energy data to your server.",
+        "description": "Create a separately editable server instance. You can add further instances later.",
         "data": {
+          "instance_name": "Instance name (e.g. Family, Public, Test)",
           "server_url": "Server URL (e.g. https://…/api/ingest.php)",
           "api_key": "API Key (optional)",
           "device_id": "Device ID",
@@ -31,8 +32,9 @@
   "options": {
     "step": {
       "init": {
-        "title": "PenguinPVDash Options",
+        "title": "Edit PenguinPVDash instance",
         "data": {
+          "instance_name": "Instance name",
           "server_url": "Server URL",
           "api_key": "API Key",
           "device_id": "Device ID",
@@ -51,7 +53,8 @@
           "batt_out_total_kwh_entity": "Battery OUT total (kWh)",
           "consumption_total_kwh_entity": "Consumption total (kWh)",
           "grid_import_total_kwh_entity": "Grid import total (kWh)"
-        }
+        },
+        "description": "Rename this instance or change its server, API key, interval and entity mapping."
       }
     }
   }

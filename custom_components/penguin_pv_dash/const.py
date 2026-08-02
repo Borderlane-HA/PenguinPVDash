@@ -1,5 +1,6 @@
 DOMAIN = "penguin_pvdash"
 
+CONF_INSTANCE_NAME = "instance_name"
 CONF_SERVER_URL = "server_url"
 CONF_API_KEY = "api_key"
 CONF_DEVICE_ID = "device_id"
@@ -21,6 +22,7 @@ CONF_BATT_OUT_TOTAL_KWH_ENTITY = "batt_out_total_kwh_entity"
 CONF_CONS_TOTAL_KWH_ENTITY = "consumption_total_kwh_entity"
 CONF_IMPORT_TOTAL_KWH_ENTITY = "grid_import_total_kwh_entity"
 
+DEFAULT_INSTANCE_NAME = "PenguinPVDash"
 DEFAULT_INTERVAL = 1  # minutes
 DEFAULT_OUTPUT_UNIT = "kW"
 

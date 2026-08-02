@@ -7,6 +7,7 @@
 
 ## ✨ Features
 - **Home Assistant Integration (HACS)** mit echten **Entity-Selectoren**
+- **Mehrere Server-Instanzen** parallel anlegen, getrennt konfigurieren und jederzeit umbenennen
 - Sendet **Leistungen** (PV, Verbrauch, Einspeisung, Netzbezug, Batterie IN/OUT, SOC)
 - Optional: **Tageszähler** (kWh) für PV, Einspeisung, Batterie IN/OUT, **Verbrauch**, **Netzbezug**
 - **PHP-Server** (SQLite) mit Flow-Diagramm, dynamischem Batterie-Icon & **30-Tage-Tabelle**
@@ -33,7 +34,8 @@
 ## ⚙️ Konfiguration (Integration)
 Unter *Einrichten/Optionen* stehen diese Felder zur Verfügung:
 
-**Verbindung**
+**Instanz & Verbindung**
+- **Instanzname** – frei wählbarer Name, z. B. `Familie`, `Öffentlich` oder `Testserver`
 - **Server URL** – z. B. `https://dein.server.tld/api/ingest.php`  
 - **API Key** *(optional)* – für HMAC-Signatur  
 - **Geräte-ID** – frei (z. B. `home`)  
@@ -58,6 +60,9 @@ Unter *Einrichten/Optionen* stehen diese Felder zur Verfügung:
 - **Netzbezug gesamt (kWh)**
 
 > Werden Tageszähler **nicht** gesetzt, berechnet der Server kWh aus den Leistungen per Integration (Trapezregel, inkl. Mitternachtssplit).
+
+### Mehrere Server verwenden
+Über **Einstellungen → Geräte & Dienste → PenguinPVDash → Eintrag hinzufügen** können mehrere Server als getrennte Instanzen angelegt werden. Jede Instanz besitzt eine eigene URL, einen eigenen API-Key, ein eigenes Intervall und eine eigene Sensorzuordnung. Über das Zahnrad kann jede Instanz später vollständig bearbeitet und umbenannt werden.
 
 ---
 
