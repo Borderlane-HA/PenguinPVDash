@@ -4,10 +4,6 @@ PenguinPVDash is a Home Assistant extension that publishes selected PV and energ
 
 ![PenguinPVDash dashboard](SCREENSHOTS/Screenshot1.png)
 
-![PenguinPVDash dashboard](SCREENSHOTS/Screenshot2.png)
-
-![PenguinPVDash dashboard](SCREENSHOTS/Screenshot3.png)
-
 ## Home Assistant integration via HACS
 
 1. Open **HACS → Integrations → Custom repositories**.
@@ -63,3 +59,7 @@ docker compose up -d
 The admin area provides data correction, device-ID management, SQLite import/export and backups, API-key and password settings, guest permissions, themes, dashboard language, custom branding and statistics. Guests are read-only.
 
 PenguinPVDash is under active development. Feedback and issue reports are welcome.
+
+![PenguinPVDash dashboard](SCREENSHOTS/Screenshot2.png)
+
+![PenguinPVDash dashboard](SCREENSHOTS/Screenshot3.png)
