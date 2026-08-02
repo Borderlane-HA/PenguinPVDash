@@ -311,7 +311,7 @@ return [
     'settings_battery_capacity_help' => 'Used to estimate equivalent full cycles. Enter 0 to disable the calculation.',
     'settings_invalid_battery_capacity' => 'The battery capacity is invalid.',
     'settings_flow_diagram_style' => 'Energy-flow diagram',
-    'settings_flow_standard' => 'Standard',
+    'settings_flow_standard' => 'Flow1',
     'settings_flow_modern' => 'Modern',
     'settings_flow_diagram_help' => 'Changes only the live energy-flow visualization; measurement data is unchanged.',
     'settings_flow_style_invalid' => 'The selected energy-flow design is invalid.',

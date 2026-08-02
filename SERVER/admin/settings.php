@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new InvalidArgumentException(t('settings_site_title_invalid'));
             }
             $theme = (string) ($_POST['theme'] ?? 'standard');
-            $flowDiagramStyle = (string) ($_POST['flow_diagram_style'] ?? 'standard');
+            $flowDiagramStyle = (string) ($_POST['flow_diagram_style'] ?? 'modern');
             $accent = strtolower((string) ($_POST['accent_color'] ?? '#4e8cff'));
             $density = (string) ($_POST['table_density'] ?? 'comfortable');
             if (!in_array($theme, ['standard', 'dark', 'light'], true)) {
@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             pvdash_runtime_settings_update([
                 'site_title' => 'PenguinPVDash',
                 'theme' => 'standard',
-                'flow_diagram_style' => 'standard',
+                'flow_diagram_style' => 'modern',
                 'accent_color' => '#4e8cff',
                 'table_density' => 'comfortable',
                 'highlight_extremes' => true,
@@ -428,7 +428,7 @@ $metricLabels = [
         <div class="settings-panel appearance-fields">
           <label><?= th('settings_site_title') ?><input type="text" name="site_title" maxlength="80" value="<?= htmlspecialchars(pvdash_site_title(), ENT_QUOTES, 'UTF-8') ?>" required></label>
           <label><?= th('settings_theme') ?><select name="theme" id="theme-select"><option value="standard" <?= pvdash_theme() === 'standard' ? 'selected' : '' ?>><?= th('settings_theme_standard') ?></option><option value="dark" <?= pvdash_theme() === 'dark' ? 'selected' : '' ?>><?= th('settings_theme_dark') ?></option><option value="light" <?= pvdash_theme() === 'light' ? 'selected' : '' ?>><?= th('settings_theme_light') ?></option></select></label>
-          <label><?= th('settings_flow_diagram_style') ?><select name="flow_diagram_style"><option value="standard" <?= pvdash_flow_diagram_style() === 'standard' ? 'selected' : '' ?>><?= th('settings_flow_standard') ?></option><option value="modern" <?= pvdash_flow_diagram_style() === 'modern' ? 'selected' : '' ?>><?= th('settings_flow_modern') ?></option></select><span class="field-help"><?= th('settings_flow_diagram_help') ?></span></label>
+          <label><?= th('settings_flow_diagram_style') ?><select name="flow_diagram_style"><option value="modern" <?= pvdash_flow_diagram_style() === 'modern' ? 'selected' : '' ?>><?= th('settings_flow_modern') ?></option><option value="standard" <?= pvdash_flow_diagram_style() === 'standard' ? 'selected' : '' ?>><?= th('settings_flow_standard') ?></option></select><span class="field-help"><?= th('settings_flow_diagram_help') ?></span></label>
           <label><?= th('settings_accent_color') ?><div class="color-input-row"><input type="color" name="accent_color" value="<?= htmlspecialchars(pvdash_accent_color(), ENT_QUOTES, 'UTF-8') ?>"><span class="color-value"><?= htmlspecialchars(pvdash_accent_color(), ENT_QUOTES, 'UTF-8') ?></span></div></label>
           <label><?= th('settings_table_density') ?><select name="table_density"><option value="comfortable" <?= pvdash_table_density() === 'comfortable' ? 'selected' : '' ?>><?= th('settings_density_comfortable') ?></option><option value="compact" <?= pvdash_table_density() === 'compact' ? 'selected' : '' ?>><?= th('settings_density_compact') ?></option></select></label>
           <label class="checkbox-label settings-checkbox"><input type="checkbox" name="highlight_extremes" value="1" <?= (bool) pvdash_config('highlight_extremes', true) ? 'checked' : '' ?>><span><?= th('settings_highlight_extremes') ?></span></label>

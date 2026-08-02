@@ -311,7 +311,7 @@ return [
     'settings_battery_capacity_help' => 'Wird für die Schätzung äquivalenter Vollzyklen verwendet. 0 deaktiviert die Berechnung.',
     'settings_invalid_battery_capacity' => 'Die Batteriekapazität ist ungültig.',
     'settings_flow_diagram_style' => 'Energiefluss-Diagramm',
-    'settings_flow_standard' => 'Standard',
+    'settings_flow_standard' => 'Flow1',
     'settings_flow_modern' => 'Modern',
     'settings_flow_diagram_help' => 'Wählt nur die Darstellung des Live-Energieflusses; die Messwerte bleiben unverändert.',
     'settings_flow_style_invalid' => 'Das gewählte Energiefluss-Design ist ungültig.',

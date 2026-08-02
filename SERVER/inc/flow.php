@@ -110,7 +110,10 @@ function pvdash_render_modern_flow(): void
             <strong class="flow-node-value" id="modern_battery_now">0 W</strong>
             <div class="flow-node-box flow-node-box-battery">
               <div class="flow-node-icon flow-node-icon-battery" aria-hidden="true">
-                <div class="bat" id="bat_icon"><div class="fill" style="width:0%"></div><span class="flow-battery-soc" id="soc_txt">0%</span></div>
+                <div class="battery-glyph" id="bat_icon">
+                  <div class="fill" style="width:0%"></div>
+                  <span class="flow-battery-soc" id="soc_txt">0%</span>
+                </div>
               </div>
             </div>
             <span class="flow-node-title">Batterie</span>

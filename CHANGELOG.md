@@ -1,3 +1,33 @@
+## 1.8.8
+
+- Restored a compact battery symbol inside the same green square tile used by the other modern flow nodes.
+- Removed the full-square battery bars and centered the small battery glyph precisely inside the tile.
+- Kept the state-of-charge fill and percentage inside the compact battery symbol.
+
+## 1.8.7
+
+- Fine-tuned the modern battery tile for a more symmetrical look, especially in the blue theme.
+- Set the modern energy-flow view as the default and renamed the classic variant to Flow1.
+- Kept the modern theme label as Modern while preserving both selectable flow designs.
+
+## 1.8.6
+
+- Centered the modern flow icons more precisely inside their green square tiles for a cleaner, more symmetrical look.
+- Reworked the battery tile again so it now uses the same square size as the other three tiles, with the square itself acting as the battery fill indicator.
+- Improved light-theme readability for the daily summary labels and values.
+
+## 1.8.5
+
+- Improved icon alignment in the modern energy-flow tiles so the symbols sit centered more consistently.
+- Reworked the battery tile so the battery rectangle itself acts more clearly as the filling state indicator.
+- Increased contrast of the daily summary headings in the light theme for better readability.
+
+## 1.8.4
+
+- Fixed the modern energy-flow node positioning so the Home and Battery tiles stay anchored at the bottom as intended.
+- Reduced the background opacity of the modern node panels for a cleaner, lighter appearance.
+- Minor CSS cleanup for the modern flow layout across desktop and mobile breakpoints.
+
 ## 1.8.3
 
 - Refined the modern energy-flow diagram again with clearer node placement and improved visual balance.

@@ -22,7 +22,7 @@ $PVDASH_CONFIG = [
     // Appearance and branding.
     'site_title' => 'PenguinPVDash',
     'theme' => 'standard',
-    'flow_diagram_style' => 'standard',
+    'flow_diagram_style' => 'modern',
     'accent_color' => '#4e8cff',
     'table_density' => 'comfortable',
     'highlight_extremes' => true,

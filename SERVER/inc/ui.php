@@ -71,8 +71,8 @@ function pvdash_table_density(): string
 
 function pvdash_flow_diagram_style(): string
 {
-    $style = (string) pvdash_config('flow_diagram_style', 'standard');
-    return in_array($style, ['standard', 'modern'], true) ? $style : 'standard';
+    $style = (string) pvdash_config('flow_diagram_style', 'modern');
+    return in_array($style, ['standard', 'modern'], true) ? $style : 'modern';
 }
 
 function pvdash_battery_capacity_kwh(): float
