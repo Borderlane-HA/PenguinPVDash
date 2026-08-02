@@ -99,11 +99,10 @@ def _optional_entity_field(fields: dict[vol.Marker, Any], key: str, value: Any) 
         fields[vol.Optional(key, default=value)] = _entity_selector()
 
 
-def _sectioned_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
-    """Build a structured setup/options schema with collapsible sections."""
+def _connection_fields(defaults: dict[str, Any] | None = None) -> dict[vol.Marker, Any]:
+    """Build the server connection fields."""
     current = defaults or {}
-
-    connection_fields: dict[vol.Marker, Any] = {
+    return {
         vol.Required(
             CONF_INSTANCE_NAME,
             default=current.get(CONF_INSTANCE_NAME, DEFAULT_INSTANCE_NAME),
@@ -148,8 +147,24 @@ def _sectioned_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
-        vol.Optional(CONF_VERIFY_SERVER, default=True): selector.BooleanSelector(),
     }
+
+
+def _connection_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
+    """Build the first setup step containing only the server connection."""
+    return vol.Schema(
+        {
+            vol.Required(SECTION_CONNECTION): section(
+                vol.Schema(_connection_fields(defaults)),
+                {"collapsed": False},
+            )
+        }
+    )
+
+
+def _sensor_sections(defaults: dict[str, Any] | None = None) -> dict[vol.Marker, Any]:
+    """Build the live power, battery and daily energy sections."""
+    current = defaults or {}
 
     power_fields: dict[vol.Marker, Any] = {}
     for key in (
@@ -179,30 +194,41 @@ def _sectioned_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
     ):
         _optional_entity_field(energy_fields, key, current.get(key))
 
-    return vol.Schema(
-        {
-            vol.Required(SECTION_CONNECTION): section(
-                vol.Schema(connection_fields),
-                {"collapsed": False},
-            ),
-            vol.Required(SECTION_POWER): section(
-                vol.Schema(power_fields),
-                {"collapsed": False},
-            ),
-            vol.Required(SECTION_BATTERY): section(
-                vol.Schema(battery_fields),
-                {"collapsed": True},
-            ),
-            vol.Required(SECTION_ENERGY): section(
-                vol.Schema(energy_fields),
-                {"collapsed": True},
-            ),
-        }
-    )
+    return {
+        vol.Required(SECTION_POWER): section(
+            vol.Schema(power_fields),
+            {"collapsed": False},
+        ),
+        vol.Required(SECTION_BATTERY): section(
+            vol.Schema(battery_fields),
+            {"collapsed": True},
+        ),
+        vol.Required(SECTION_ENERGY): section(
+            vol.Schema(energy_fields),
+            {"collapsed": True},
+        ),
+    }
+
+
+def _sensor_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
+    """Build the second setup step containing all sensor assignments."""
+    return vol.Schema(_sensor_sections(defaults))
+
+
+def _sectioned_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
+    """Build the complete editable options form."""
+    fields: dict[vol.Marker, Any] = {
+        vol.Required(SECTION_CONNECTION): section(
+            vol.Schema(_connection_fields(defaults)),
+            {"collapsed": False},
+        )
+    }
+    fields.update(_sensor_sections(defaults))
+    return vol.Schema(fields)
 
 
 def _flatten_sections(user_input: dict[str, Any]) -> dict[str, Any]:
-    """Flatten the sectioned Home Assistant form into config-entry options."""
+    """Flatten the sectioned Home Assistant form into config-entry values."""
     flattened: dict[str, Any] = {}
     for section_name in (
         SECTION_CONNECTION,
@@ -232,7 +258,7 @@ def _connection_changed(submitted: dict[str, Any], current: dict[str, Any]) -> b
     return False
 
 
-async def _validate_connection(hass, submitted: dict[str, Any]) -> tuple[str, str | None]:
+async def _validate_connection(hass, submitted: dict[str, Any]):
     """Normalize and test the configured server connection."""
     normalized_url = normalize_ingest_url(submitted.get(CONF_SERVER_URL))
     result = await async_test_server(
@@ -241,7 +267,7 @@ async def _validate_connection(hass, submitted: dict[str, Any]) -> tuple[str, st
         str(submitted.get(CONF_API_KEY, "") or ""),
         str(submitted.get(CONF_DEVICE_ID, "home") or "home").strip(),
     )
-    return normalized_url, result.version
+    return normalized_url, result
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -249,24 +275,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    _pending_connection: dict[str, Any] | None = None
+    _pending_server_version: str = "unknown"
+    _pending_auth_verified: bool = True
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle setup through the Home Assistant UI."""
+        """Collect and verify the server connection before sensor assignment."""
         errors: dict[str, str] = {}
         submitted_defaults: dict[str, Any] = {}
 
         if user_input is not None:
             submitted = _flatten_sections(user_input)
-            verify_server = bool(submitted.pop(CONF_VERIFY_SERVER, True))
             submitted_defaults = dict(submitted)
 
             try:
-                submitted[CONF_SERVER_URL] = normalize_ingest_url(
-                    submitted.get(CONF_SERVER_URL)
+                normalized_url, result = await _validate_connection(
+                    self.hass, submitted
                 )
-                if verify_server:
-                    await _validate_connection(self.hass, submitted)
+                submitted[CONF_SERVER_URL] = normalized_url
             except InvalidServerUrl:
                 errors["base"] = "invalid_url"
             except InvalidAuth:
@@ -277,24 +305,57 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_server"
             except Exception:  # Defensive: never expose network details in the UI.
                 errors["base"] = "unknown"
-
-            if not errors:
-                entry_data = dict(submitted)
-                instance_name = _normalise_instance_name(
-                    entry_data.pop(CONF_INSTANCE_NAME, DEFAULT_INSTANCE_NAME)
-                )
-                return self.async_create_entry(title=instance_name, data=entry_data)
+            else:
+                self._pending_connection = submitted
+                self._pending_server_version = result.version
+                self._pending_auth_verified = result.authentication_verified
+                return await self.async_step_sensors()
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_sectioned_schema(submitted_defaults),
+            data_schema=_connection_schema(submitted_defaults),
             errors=errors,
+            last_step=False,
+        )
+
+    async def async_step_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Collect sensor assignments after the server was verified."""
+        if self._pending_connection is None:
+            return await self.async_step_user()
+
+        sensor_defaults: dict[str, Any] = {}
+        if user_input is not None:
+            sensor_values = _flatten_sections(user_input)
+            sensor_defaults = dict(sensor_values)
+            entry_data = {**self._pending_connection, **sensor_values}
+            instance_name = _normalise_instance_name(
+                entry_data.pop(CONF_INSTANCE_NAME, DEFAULT_INSTANCE_NAME)
+            )
+            return self.async_create_entry(title=instance_name, data=entry_data)
+
+        connection_status = (
+            "verified"
+            if self._pending_auth_verified
+            else "reachable_unverified"
+        )
+        return self.async_show_form(
+            step_id="sensors",
+            data_schema=_sensor_schema(sensor_defaults),
+            description_placeholders={
+                "server": display_server_url(
+                    self._pending_connection.get(CONF_SERVER_URL, "")
+                ),
+                "version": self._pending_server_version,
+                "connection_status": connection_status,
+            },
             last_step=True,
         )
 
     async def async_step_import(self, import_config: dict[str, Any]) -> FlowResult:
-        """Import configuration and pass it through the normal setup step."""
-        sectioned = {
+        """Import configuration and validate it through the normal setup flow."""
+        connection_input = {
             SECTION_CONNECTION: {
                 key: import_config[key]
                 for key in (
@@ -306,7 +367,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_OUTPUT_UNIT,
                 )
                 if key in import_config
-            },
+            }
+        }
+        result = await self.async_step_user(connection_input)
+        if self._pending_connection is None:
+            return result
+
+        sensor_input = {
             SECTION_POWER: {
                 key: import_config[key]
                 for key in (
@@ -339,7 +406,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if key in import_config
             },
         }
-        return await self.async_step_user(sectioned)
+        return await self.async_step_sensors(sensor_input)
 
     @staticmethod
     @callback
@@ -365,26 +432,21 @@ class PenguinPVDashOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Open the editable configuration directly."""
-        return await self.async_step_configure(user_input)
-
-    async def async_step_configure(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Edit all settings in structured sections."""
         current = self._current_values()
         errors: dict[str, str] = {}
         form_defaults = current
 
         if user_input is not None:
             submitted = _flatten_sections(user_input)
-            verify_server = bool(submitted.pop(CONF_VERIFY_SERVER, True))
             form_defaults = {**current, **submitted}
 
             try:
                 submitted[CONF_SERVER_URL] = normalize_ingest_url(
                     submitted.get(CONF_SERVER_URL)
                 )
-                if verify_server:
+                # Connection changes are always checked. Sensor-only changes can
+                # still be saved while the external server is temporarily down.
+                if _connection_changed(submitted, current):
                     await _validate_connection(self.hass, submitted)
             except InvalidServerUrl:
                 errors["base"] = "invalid_url"
@@ -405,6 +467,9 @@ class PenguinPVDashOptionsFlowHandler(config_entries.OptionsFlow):
 
                 new_options = dict(self.config_entry.options)
                 new_options.update(submitted)
+                # Remove the legacy switch. Validation is now automatic and can
+                # no longer be accidentally disabled for connection changes.
+                new_options.pop(CONF_VERIFY_SERVER, None)
 
                 # A cleared optional selector is omitted from user_input. Store
                 # an explicit empty value to override older entry.data values.
@@ -421,65 +486,8 @@ class PenguinPVDashOptionsFlowHandler(config_entries.OptionsFlow):
                 return self.async_create_entry(data=new_options)
 
         return self.async_show_form(
-            step_id="configure",
+            step_id="init",
             data_schema=_sectioned_schema(form_defaults),
             errors=errors,
-            last_step=True,
-        )
-
-    async def async_step_test_connection(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Test the currently saved server without writing measurement data."""
-        current = self._current_values()
-        server_url = str(current.get(CONF_SERVER_URL, ""))
-        device_id = str(current.get(CONF_DEVICE_ID, "home") or "home")
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            try:
-                result = await async_test_server(
-                    self.hass,
-                    server_url,
-                    str(current.get(CONF_API_KEY, "") or ""),
-                    device_id,
-                )
-            except InvalidServerUrl:
-                errors["base"] = "invalid_url"
-            except InvalidAuth:
-                errors["base"] = "invalid_auth"
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except InvalidServer:
-                errors["base"] = "invalid_server"
-            except Exception:
-                errors["base"] = "unknown"
-            else:
-                reason = (
-                    "connection_successful"
-                    if result.authentication_verified
-                    else "connection_reachable_unverified"
-                )
-                return self.async_abort(
-                    reason=reason,
-                    description_placeholders={
-                        "url": result.ingest_url,
-                        "version": result.version,
-                    },
-                )
-
-        try:
-            display_url = normalize_ingest_url(server_url)
-        except InvalidServerUrl:
-            display_url = server_url
-
-        return self.async_show_form(
-            step_id="test_connection",
-            data_schema=vol.Schema({}),
-            errors=errors,
-            description_placeholders={
-                "url": display_url,
-                "device": device_id,
-            },
             last_step=True,
         )

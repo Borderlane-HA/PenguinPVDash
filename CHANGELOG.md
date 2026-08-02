@@ -1,3 +1,10 @@
+## 1.7.5
+
+- Replaced the optional `verify_server` switch with mandatory validation during initial setup.
+- Split initial setup into server verification and sensor assignment.
+- Connection changes are validated automatically; sensor-only edits remain possible while the server is offline.
+- Corrected and simplified German and English config-flow translations.
+
 # Changelog
 
 ## 1.7.4
