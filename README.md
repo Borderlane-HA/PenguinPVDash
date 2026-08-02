@@ -2,7 +2,7 @@
 
 PenguinPVDash publishes photovoltaic and energy data from Home Assistant to a lightweight, externally hosted dashboard. The Home Assistant custom integration sends the selected sensors to the PHP server at a configurable interval. Multiple independently editable server instances are supported.
 
-> Version 1.6.0 introduces administrator/guest access, editable daily totals, Docker and Proxmox deployment, and one consistent **Consumption** value supplied by Home Assistant.
+> Version 1.6.2 adds administrator-only SQLite export and import with integrity checks, automatic pre-import backups and safe handling of active WAL data.
 
 ## Features
 
@@ -12,6 +12,7 @@ PenguinPVDash publishes photovoltaic and energy data from Home Assistant to a li
 - Administrator and optional guest password
 - Independent guest permissions for statistics and compensation
 - Admin editor for adding, correcting, locking, unlocking and deleting daily totals
+- Administrator-only SQLite export and import with validation and automatic pre-import backup
 - Manual corrections are protected from later Home Assistant updates
 - Multiple Home Assistant integration instances and server targets
 - Classic PHP hosting, Docker Compose and Proxmox VE LXC deployment
@@ -82,6 +83,10 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/Borderlane-HA/PenguinPVD
 ```
 
 The script creates an unprivileged Debian 12 LXC, installs Docker, asks for the dashboard and Home Assistant credentials, and starts PenguinPVDash. Configuration and SQLite data remain inside `/opt/penguinpvdash` in the container.
+
+The installer also supports an optional VLAN tag, DHCP or a static IPv4 address, an optional LXC root password for console login, and optional SSH root login. Root password login is not required for administration: from the Proxmox host, `pct enter <VMID>` and `pct exec <VMID> -- <command>` continue to work. The Proxmox browser console itself still requires a valid guest login if root password login is disabled.
+
+Feed-in compensation is entered in **ct/kWh**. Both `7.5` and `7,5` are accepted and stored as `7.5`.
 
 The GHCR package must already have been published before the installer can pull it.
 
@@ -155,6 +160,8 @@ The administrator can:
 - lock corrected entries against automatic overwrite
 - unlock entries for automatic updates
 - delete incorrect entries
+- export a consistent SQLite backup
+- import a PenguinPVDash SQLite backup after validation
 
 ### Guest
 
@@ -196,14 +203,21 @@ For Docker, the equivalent one-line JSON value is:
 PVDASH_API_KEYS_JSON={"home":"first-key","garage":"second-key"}
 ```
 
-## Backup
+## SQLite backup and restore
 
-Back up the SQLite file and configuration:
+Sign in as administrator and open **Edit data**. The **SQLite database** section provides:
 
-- Docker/Proxmox: data directory plus configuration or `.env`
-- classic hosting: `SERVER/data/pvdash.sqlite` and `SERVER/inc/config.local.php`
+- **Export SQLite**: creates a consistent standalone backup while safely checkpointing active WAL data. The download contains measurements and daily totals, but no passwords or API keys.
+- **Import SQLite**: validates the SQLite header, integrity, required PenguinPVDash schema and unsafe triggers before replacing the active database. Older PenguinPVDash databases are migrated to the current schema automatically.
 
-When SQLite WAL mode is active, stop the container or web service before copying the database, or include the `-wal` and `-shm` files in a consistent backup.
+Immediately before an import, PenguinPVDash creates an additional server-side backup named `pvdash-before-import-*.sqlite` in the configured data directory. The newest five automatic pre-import backups are retained.
+
+For Docker and Proxmox installations, uploads up to 512 MB are enabled by the included PHP configuration. On classic hosting, the provider's `upload_max_filesize` and `post_max_size` settings may impose a lower limit.
+
+The private configuration is not part of a SQLite export. Back it up separately:
+
+- Docker/Proxmox: `.env` or `config.local.php`
+- classic hosting: `SERVER/inc/config.local.php`
 
 ## Maintenance
 

@@ -17,3 +17,7 @@ $PVDASH_QUIET_WINDOW_ENABLED = true;
 $PVDASH_QUIET_MODE = 'ignore_totals';
 $PVDASH_QUIET_START_MIN = 23 * 60 + 55;
 $PVDASH_QUIET_END_MIN = 5;
+
+// SQLite import/export limits. These values normally do not need adjustment.
+$PVDASH_DATABASE_IMPORT_MAX_BYTES = 512 * 1024 * 1024;
+$PVDASH_DATABASE_BACKUP_RETENTION = 5;

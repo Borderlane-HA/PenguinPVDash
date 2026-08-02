@@ -17,8 +17,9 @@ if (!in_array($device, $devices, true)) {
 $today = date('Y-m-d');
 $from = (string) ($_GET['from'] ?? $_POST['from'] ?? date('Y-m-d', strtotime('-60 days')));
 $to = (string) ($_GET['to'] ?? $_POST['to'] ?? $today);
-$message = (string) ($_GET['message'] ?? '');
-$error = '';
+$message = (string) ($_SESSION['pvdash_admin_message'] ?? $_GET['message'] ?? '');
+$error = (string) ($_SESSION['pvdash_admin_error'] ?? '');
+unset($_SESSION['pvdash_admin_message'], $_SESSION['pvdash_admin_error']);
 
 function valid_day(string $day): bool
 {
@@ -138,6 +139,39 @@ $csrf = pvdash_csrf_token();
 
   <?php if ($message !== ''): ?><div class="alert alert-success"><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
   <?php if ($error !== ''): ?><div class="alert alert-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+
+  <section class="card">
+    <div class="card-head"><h2><?= th('database_title') ?></h2></div>
+    <p class="muted"><?= th('database_intro') ?></p>
+    <div class="database-tools">
+      <article class="database-tool">
+        <h3><?= th('database_export_title') ?></h3>
+        <p class="muted"><?= th('database_export_help') ?></p>
+        <form method="post" action="database_export.php">
+          <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+          <button class="button button-primary" type="submit"><?= th('database_export_button') ?></button>
+        </form>
+      </article>
+
+      <article class="database-tool database-tool-warning">
+        <h3><?= th('database_import_title') ?></h3>
+        <p class="muted"><?= th('database_import_help') ?></p>
+        <p class="tiny muted"><?= th('database_import_limit', ['max' => (string) round(pvdash_database_import_max_bytes() / 1024 / 1024)]) ?></p>
+        <form method="post" action="database_import.php" enctype="multipart/form-data" class="database-import-form" onsubmit="return confirm('<?= htmlspecialchars(t('database_import_confirm_dialog'), ENT_QUOTES, 'UTF-8') ?>')">
+          <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+          <input type="hidden" name="MAX_FILE_SIZE" value="<?= pvdash_database_import_max_bytes() ?>">
+          <label><?= th('database_import_file') ?>
+            <input type="file" name="database_file" accept=".sqlite,.sqlite3,.db,application/vnd.sqlite3,application/x-sqlite3" required>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="confirm_replace" value="1" required>
+            <span><?= th('database_import_confirmation') ?></span>
+          </label>
+          <button class="button button-danger" type="submit"><?= th('database_import_button') ?></button>
+        </form>
+      </article>
+    </div>
+  </section>
 
   <section class="card">
     <div class="card-head"><h2><?= th('admin_filter') ?></h2></div>
