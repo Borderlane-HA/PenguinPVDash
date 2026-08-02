@@ -2,7 +2,7 @@
 
 PenguinPVDash is a Home Assistant extension that publishes selected PV and energy sensors to an external dashboard. It is especially useful for E3/DC systems and other battery-based installations: live energy flow, longer history, statistics and an optional read-only guest view are available without exposing Home Assistant itself.
 
-![PenguinPVDash dashboard](SCREENSHOTS/Screenshot1.png)
+![PenguinPVDash dashboard](SCREENSHOTS/Screenshot.png)
 
 
 ## Home Assistant integration via HACS
